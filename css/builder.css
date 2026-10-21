@@ -135,3 +135,14 @@
 
 /* 黄・紫のカード（拡大表示用） */
 .card.c-yellow { --c: var(--yellow); } .card.c-purple { --c: var(--purple); }
+
+/* 拡大表示のスワイプ切り替え */
+.zoom-pager { display: flex; justify-content: center; align-items: center; gap: 14px; font-size: 12px; font-weight: 700; color: var(--muted); pointer-events: none; }
+.zoom-pager span { font-size: 18px; opacity: .6; }
+.zoom-body > .zoom-pager { pointer-events: none; }
+.zoom-body.slide-next { animation: slide-next .22s cubic-bezier(.2, .8, .2, 1); }
+.zoom-body.slide-prev { animation: slide-prev .22s cubic-bezier(.2, .8, .2, 1); }
+.zoom-body.edge { animation: edge .25s; }
+@keyframes slide-next { from { transform: translateX(40px); opacity: .3; } }
+@keyframes slide-prev { from { transform: translateX(-40px); opacity: .3; } }
+@keyframes edge { 30% { transform: translateX(-8px); } 70% { transform: translateX(8px); } }
