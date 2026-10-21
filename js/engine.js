@@ -33,7 +33,7 @@ export function createGame({ seed = Date.now() >>> 0, names = ['あなた', 'あ
 }
 
 function newTf() {
-  return { once: {}, drewByMana: [false, false], destroyedTypes: [[], []], attackerDestroyed: false, battled: false, used: [0, 0], haikeis: 0, manaFromGrave: false };
+  return { once: {}, drewByMana: [false, false], destroyedTypes: [[], []], attackerDestroyed: false, battled: false, used: [0, 0], mh: [0, 0], haikeis: 0, manaFromGrave: false };
 }
 
 // ---------- 参照用 ----------
@@ -324,6 +324,7 @@ function playCard(s, it) {
     it.card = { uid: inst.uid, id: inst.id };
     pl.hand.splice(pl.hand.indexOf(inst), 1);
     s.tf.used[p]++;
+    if (d.type === 'mahou' || d.type === 'haikei') s.tf.mh[p]++;
     if (d.type === 'ijin') {
       const r = summonRight(s, p, inst);
       if (r === 'summon') s.rights.summon--; else if (r === 'mana') s.rights.mana--;

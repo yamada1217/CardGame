@@ -419,7 +419,9 @@ function checkDeckEmpty(s, p) {
 export function draw(s, p, n = 1, { byAbility = true, zone = null } = {}) {
   const pl = s.players[p];
   if (rule(s, 'noDraw', p, { byAbility })) return 0;
-  if (byAbility) n += rule(s, 'drawPlus', p) || 0;
+  if (byAbility && !s.noBeikoku) n += rule(s, 'drawPlus', p) || 0;
+  // 米百俵：能力によるドローを、マリョク配置権に替えてもよい
+  if (byAbility && !s.noBeikoku && rule(s, 'beikoku', p) && s.turn === p) { s.queue.unshift({ k: 'beikoku', p, n, zone }); return 0; }
   let k = 0;
   for (; k < n && pl.deck.length; k++) pl.hand.push(pl.deck.shift());
   if (k && byAbility && zone === 'mana') s.tf.drewByMana[p] = true;
@@ -756,4 +758,11 @@ export const ITEMS = {
     LEGACY[def(f.inst).legacy]?.(s, it);
   },
   fn: (s, it) => E[it.id].steps[it.step](s, it),
+  beikoku: (s, it) => {
+    const a = pick(s, it, 'c', { title: `米百俵：${it.n}枚引くかわりに、マリョク配置権を増やす？`, options: ['L:d', 'L:m'], labels: { 'L:d': `${it.n}ドロー`, 'L:m': `マリョク配置権+${it.n}` }, min: 1, max: 1 });
+    if (!a) return;
+    if (a[0] === 'L:m') { addRight(s, it.p, 'mana', it.n); return; }
+    s.noBeikoku = true;
+    try { draw(s, it.p, it.n, { zone: it.zone }); } finally { s.noBeikoku = false; }
+  },
 };
