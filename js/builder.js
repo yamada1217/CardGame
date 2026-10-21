@@ -226,9 +226,9 @@ function tileHtml(c) {
   const n = deck.cards[c.id] || 0;
   const ok = playable(c.id);
   const lim = copyLimit(c);
-  const col = c.colors.length > 1 ? 'multi' : c.color || 'none';
+  const col = c.colors[0] || c.color || 'none';
   return `
-    <button class="tile c-${col} t-${c.type}${ok ? '' : ' locked'}${n ? ' in' : ''}" data-id="${esc(c.id)}" ${c.colors.length > 1 ? `style="--c2: var(--${c.colors[1]})"` : ''}>
+    <button class="tile c-${col} r-${esc(c.rarity || 'N')} t-${c.type}${ok ? '' : ' locked'}${n ? ' in' : ''}" data-id="${esc(c.id)}" ${c.colors.length > 1 ? `style="--c2: var(--${c.colors[1]})"` : ''}>
       <span class="t-lv">${c.level}</span>
       ${c.type === 'mahou' ? `<span class="t-cost">${c.cost ?? ''}</span>` : ''}
       <span class="t-emblem">${esc(c.type === 'maryoku' ? (COLORS[c.color]?.name || '魔') : c.name[0])}</span>

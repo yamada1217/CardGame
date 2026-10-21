@@ -98,11 +98,10 @@
 .b-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; padding: 4px 12px calc(16px + var(--safe-bottom)); align-content: start; }
 
 /* カード一覧のタイル */
-.tile { --c: var(--none); --c2: var(--c); position: relative; aspect-ratio: 5 / 7; border-radius: 9px; padding: 2px; background: linear-gradient(160deg, var(--c), color-mix(in srgb, var(--c2) 40%, #120e0b)); display: flex; flex-direction: column; align-items: center; overflow: hidden; transition: transform .15s, opacity .2s, box-shadow .2s; touch-action: manipulation; -webkit-touch-callout: none; }
-.tile::before { content: ''; position: absolute; inset: 2px; border-radius: 7px; background: radial-gradient(90% 60% at 50% 36%, color-mix(in srgb, var(--c) 45%, transparent), transparent 70%), linear-gradient(180deg, #2b231d, #17120f); }
+.tile { --c: var(--none); --c2: var(--c); position: relative; aspect-ratio: 5 / 7; border-radius: 9px; border: 2px solid transparent; padding: 2px; background: var(--inner) padding-box, var(--frame) border-box; display: flex; flex-direction: column; align-items: center; overflow: hidden; transition: transform .15s, opacity .2s, box-shadow .2s; touch-action: manipulation; -webkit-touch-callout: none; }
+.tile::before { content: ''; position: absolute; inset: 2px; border-radius: 5px; background: radial-gradient(90% 60% at 50% 36%, color-mix(in srgb, var(--c) 45%, transparent), transparent 70%), linear-gradient(180deg, #2b231d, #17120f); }
 .tile > * { position: relative; }
-.tile.c-red { --c: var(--red); } .tile.c-blue { --c: var(--blue); } .tile.c-green { --c: var(--green); } .tile.c-yellow { --c: var(--yellow); } .tile.c-purple { --c: var(--purple); } .tile.c-none { --c: var(--gold); }
-.tile.c-multi { --c: var(--gold); }
+.tile.c-red { --c: var(--red); } .tile.c-blue { --c: var(--blue); } .tile.c-green { --c: var(--green); } .tile.c-yellow { --c: var(--yellow); } .tile.c-purple { --c: var(--purple); } .tile.c-none { --c: #d9d0c2; }
 .tile.t-mahou::after { content: ''; position: absolute; inset: 6px; border: 1px dashed color-mix(in srgb, var(--c) 60%, transparent); border-radius: 5px; pointer-events: none; }
 .t-lv { position: absolute; top: 4px; left: 4px; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 10px; font-weight: 900; background: var(--c); color: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .5); z-index: 1; }
 .t-cost { position: absolute; top: 4px; right: 4px; width: 17px; height: 17px; border-radius: 5px; display: grid; place-items: center; font-size: 10px; font-weight: 900; background: #0d0a08; color: var(--gold-2); border: 1px solid var(--gold); z-index: 1; }
