@@ -1,6 +1,8 @@
 import { CARDS, COLORS, DECKS, LEGACY_TEXT } from './cards.js';
 import { createGame, applyAction, def, checkPlay, canAttackWith, canBlockWith, canBlockPair, power, levelSum, isDouble, effectiveLevel, waitingFor, findOnBoard } from './engine.js';
 import { cpuAction } from './ai.js';
+import { cardFace as viewCardFace, cardBack, esc } from './cardview.js';
+import { zoomCard, closeZoom } from './zoom.js';
 import { onlineAvailable, hostRoom, joinRoom, roomUrl, savedSession } from './online.js';
 
 const $app = document.getElementById('app');
@@ -35,7 +37,6 @@ function load(k) { try { return localStorage.getItem(k); } catch { return null; 
 function store(k, v) { try { localStorage.setItem(k, v); } catch { /* 保存できなくても続行 */ } }
 const myName = () => (ui.name.trim() || 'プレイヤー').slice(0, 12);
 
-const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function toast(text) {
@@ -51,49 +52,7 @@ function vibrate(ms = 12) {
 
 // ---------- カードの描画 ----------
 
-const TYPE_LABEL = { ijin: 'イジン', haikei: 'ハイケイ', mahou: 'マホウ', maryoku: 'マリョク' };
-
-function kwBadges(d) {
-  const k = d.kw || {};
-  const list = [];
-  if (k.sokuo) list.push('即応');
-  if (k.double) list.push('ダブル');
-  if (k.voyage) list.push('航海');
-  if (k.shippitsu) list.push('執筆');
-  if (k.atk) list.push(`攻+${k.atk}`);
-  if (k.cannotBlock) list.push('防×');
-  return list;
-}
-
-function cardFace(inst, { size = 'm', p = ME, role = null, extra = '' } = {}) {
-  const d = def(inst);
-  const color = d.color || 'none';
-  const pw = d.type === 'ijin' && ui.game ? power(ui.game, p, inst, role) : d.power;
-  const boosted = d.type === 'ijin' && pw !== d.power;
-  const enter = !ui.seen.has(inst.uid) ? ' enter' : '';
-  ui.seen.add(inst.uid);
-  const kws = kwBadges(d);
-  return `
-    <div class="card ${size} c-${color} t-${d.type}${inst.tapped ? ' tapped' : ''}${enter} ${extra}" data-uid="${inst.uid}">
-      <div class="card-in">
-        <div class="lv">${ui.game && d.type === 'haikei' ? effectiveLevel(ui.game, p, d) : d.level}</div>
-        ${d.type === 'mahou' ? `<div class="cost" title="魔力コスト">${d.cost}</div>` : ''}
-        <div class="emblem">${esc(d.type === 'maryoku' ? (COLORS[d.color]?.name || '魔') : d.name[0])}</div>
-        <div class="name">${esc(d.name)}</div>
-        ${size !== 's' ? `<div class="type">${TYPE_LABEL[d.type]}</div>` : ''}
-        ${size === 'l' ? `<div class="text">${esc(d.text || '').replace(/\n/g, '<br>')}${d.legacy ? `<span class="legacy">遺業 ${esc(LEGACY_TEXT[d.legacy] || d.legacy)}</span>` : ''}</div>` : ''}
-        ${size !== 's' && kws.length && size !== 'l' ? `<div class="kws">${kws.map((k) => `<span>${k}</span>`).join('')}</div>` : ''}
-        ${d.type === 'ijin' ? `<div class="pw${boosted ? ' up' : ''}">${fmtPower(pw)}</div>` : ''}
-      </div>
-    </div>`;
-}
-
-// 6000 → 6k のように短く（大きいカードでは省略しない）
-const fmtPower = (v) => String(v);
-
-function cardBack(uid = '', { size = 'm', extra = '', label = '' } = {}) {
-  return `<div class="card back ${size} ${extra}" data-uid="${uid}"><div class="card-in"><div class="crest">偉</div>${label ? `<div class="back-label">${label}</div>` : ''}</div></div>`;
-}
+const cardFace = (inst, opts = {}) => viewCardFace(inst, { game: ui.game, p: ME, seen: ui.seen, ...opts });
 
 function manaChip(m) {
   if (!m.faceUp) return `<span class="chip down" title="裏向き：レベル1">1</span>`;
@@ -149,6 +108,7 @@ function renderTitle() {
 }
 
 function resetBoardUi() {
+  closeZoom();
   Object.assign(ui, { screen: 'game', mode: null, picks: [], blocks: {}, blocksPrev: {}, focusAtk: null, pending: null, seen: new Set(), logOpen: false });
   closeSheet();
 }
@@ -374,7 +334,29 @@ function bindGame() {
     const c = g.players[ME].hand.find((x) => x.uid === el.dataset.uid);
     if (c) showHandCard(c);
   });
-  $app.querySelectorAll('.side .card').forEach((el) => el.onclick = () => onBoardTap(el));
+  $app.querySelectorAll('.side .card').forEach((el) => el.onclick = () => { if (!ui.longPressed) onBoardTap(el); ui.longPressed = false; });
+  bindLongPress();
+}
+
+// アタック・ブロックの選択中でも、長押しでカードを拡大できる
+function bindLongPress() {
+  $app.querySelectorAll('.side .card[data-id]').forEach((el) => {
+    let t = null;
+    const start = () => {
+      ui.longPressed = false;
+      t = setTimeout(() => {
+        const f = findOnBoard(ui.game, el.dataset.uid);
+        if (!f) return;
+        ui.longPressed = true;
+        vibrate(20);
+        showCardDetail(f.inst, f.p);
+      }, 450);
+    };
+    const cancel = () => clearTimeout(t);
+    el.addEventListener('pointerdown', start);
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => el.addEventListener(ev, cancel));
+    el.addEventListener('contextmenu', (e) => e.preventDefault());
+  });
 }
 
 function onBoardTap(el) {
@@ -517,9 +499,21 @@ function showMulligan(g) {
   const hand = g.players[ME].hand;
   const s = openSheet(`<h3>最初の手札</h3>
     <p class="sub-note">${g.first === ME ? 'あなたが先攻です' : 'あなたは後攻です'}。1回だけ、6枚すべてを山札に戻して引き直せます。</p>
+    <p class="zoom-hint">カードをタップすると効果を読めます</p>
     <div class="grid pick-grid">${hand.map((c) => cardFace(c, { size: 's' })).join('')}</div>
     <div class="sheet-actions row"><button class="btn ghost" data-m="1">引き直す</button><button class="btn primary" data-m="0">このまま始める</button></div>`, 'tall locked');
   s.querySelectorAll('[data-m]').forEach((b) => b.onclick = () => { ui.sheetKey = null; closeSheet(); act({ type: 'mulligan', redo: b.dataset.m === '1' }); });
+  zoomOnTap(s, (uid) => hand.find((c) => c.uid === uid), ME);
+}
+
+// シートの中のカードをタップしたら拡大する
+function zoomOnTap(container, find, p) {
+  container.querySelectorAll('.card[data-uid]').forEach((el) => el.onclick = (e) => {
+    const inst = find(el.dataset.uid);
+    if (!inst) return;
+    e.stopPropagation();
+    zoomCard(inst, { game: ui.game, p });
+  });
 }
 
 function optionCard(uid) {
@@ -543,6 +537,7 @@ function showPrompt(g, key) {
   }
   const picks = new Set();
   const s = openSheet(`<h3>${pr.min === 0 ? '能力の発動（任意）' : '選んでください'}</h3>${head}
+    <p class="zoom-hint">カードをタップすると拡大して選べます</p>
     <div class="grid pick-grid">${pr.options.map(optionCard).join('')}</div>
     <div class="sheet-actions row">
       ${pr.min === 0 ? '<button class="btn ghost" data-skip>使わない</button>' : ''}
@@ -555,12 +550,20 @@ function showPrompt(g, key) {
     ok.disabled = picks.size < Math.max(1, pr.min) || picks.size > pr.max;
     ok.textContent = pr.max > 1 ? `決定（${picks.size}/${pr.max}）` : '決定';
   };
-  s.querySelectorAll('[data-opt]').forEach((b) => b.onclick = () => {
-    const u = b.dataset.opt;
+  const toggle = (u) => {
     if (picks.has(u)) picks.delete(u);
     else { if (pr.max === 1) picks.clear(); if (picks.size < pr.max) picks.add(u); }
     vibrate(); refresh();
+  };
+  // 表向きのカードは拡大して効果を読んでから選べる。裏向きはそのまま選ぶ
+  s.querySelectorAll('[data-opt]').forEach((b) => b.onclick = () => {
+    const u = b.dataset.opt;
+    const f = findOnBoard(ui.game, u);
+    if (!f || b.querySelector('.card.back')) return toggle(u);
+    zoomCard(f.inst, { game: ui.game, p: f.p, actions: [{ label: picks.has(u) ? '選択を外す' : 'これを選ぶ', primary: !picks.has(u), onClick: () => toggle(u) }] });
   });
+  const srcEl = s.querySelector('.prompt-src .card');
+  if (srcEl && src) srcEl.onclick = () => zoomCard(src.inst, { game: ui.game, p: src.p });
   ok.onclick = () => { closeSheet(); act({ type: 'choose', picks: [...picks] }); };
   const skip = s.querySelector('[data-skip]');
   if (skip) skip.onclick = () => { closeSheet(); act({ type: 'choose', picks: [] }); };
@@ -584,29 +587,24 @@ function closeSheet() {
 
 function showHandCard(c) {
   const g = ui.game, d = def(c);
-  const myMain = g.turn === ME && g.phase === 'main' && !ui.mode;
+  const myMain = g.turn === ME && g.phase === 'main' && !ui.mode && !g.prompt && !g.queue.length;
   const chk = checkPlay(g, ME, c.uid);
   const verb = { ijin: '召喚する', haikei: '展開する', mahou: '発動する' }[d.type];
-  const btns = [];
-  if (d.type === 'maryoku') btns.push(`<button class="btn primary" data-do="up" ${myMain && g.rights.mana ? '' : 'disabled'}>表向きで配置</button>`);
-  else btns.push(`<button class="btn primary" data-do="play" ${myMain && chk.ok ? '' : 'disabled'}>${verb}</button>`);
-  btns.push(`<button class="btn ghost" data-do="down" ${myMain && g.rights.mana ? '' : 'disabled'}>裏向きでマリョクに</button>`);
+  const actions = [];
+  if (d.type === 'maryoku') actions.push({ label: '表向きで配置', primary: true, disabled: !(myMain && g.rights.mana), onClick: () => act({ type: 'placeMana', uid: c.uid, faceUp: true }) });
+  else actions.push({ label: verb, primary: true, disabled: !(myMain && chk.ok), onClick: () => act({ type: 'play', uid: c.uid }) });
+  actions.push({ label: '裏向きでマリョクに', disabled: !(myMain && g.rights.mana), onClick: () => act({ type: 'placeMana', uid: c.uid, faceUp: false }) });
   const why = !myMain ? '自分のメインフェイズに使えます' : (d.type !== 'maryoku' && !chk.ok ? chk.why : '');
-  const sheet = openSheet(`
-    <div class="detail">
-      ${cardFace(c, { size: 'l' })}
-      <div class="detail-info">
-        ${conditions(d)}
-        ${why ? `<p class="why">${esc(why)}</p>` : ''}
-        <div class="sheet-actions">${btns.join('')}</div>
-      </div>
-    </div>`);
-  sheet.querySelectorAll('[data-do]').forEach((b) => b.onclick = () => {
-    closeSheet();
-    const k = b.dataset.do;
-    if (k === 'up' || k === 'down') return act({ type: 'placeMana', uid: c.uid, faceUp: k === 'up' });
-    act({ type: 'play', uid: c.uid });
-  });
+  zoomCard(c, { game: g, p: ME, note: [conditionText(d), why].filter(Boolean).join('\n'), actions });
+}
+
+function conditionText(d) {
+  if (d.type === 'maryoku') return '';
+  const parts = [];
+  if (d.color) parts.push(`${COLORS[d.color].name}の表向きマリョク`);
+  parts.push(`レベル${effectiveLevel(ui.game, ME, d)}以上`);
+  if (d.type === 'mahou') parts.push(`魔力ゾーンから${d.cost}枚を墓地へ`);
+  return `使う条件：${parts.join('・')}`;
 }
 
 function conditions(d) {
@@ -619,15 +617,8 @@ function conditions(d) {
 
 function showCardDetail(inst, p) {
   const d = def(inst);
-  openSheet(`
-    <div class="detail">
-      ${cardFace(inst, { size: 'l', p })}
-      <div class="detail-info">
-        ${d.type === 'ijin' ? `<p class="stat">現在のパワー <b>${power(ui.game, p, inst)}</b>${inst.tapped ? '・寝ている' : ''}</p>` : ''}
-        ${conditions(d)}
-        <div class="sheet-actions"><button class="btn ghost" data-close>閉じる</button></div>
-      </div>
-    </div>`).querySelector('[data-close]').onclick = closeSheet;
+  const note = d.type === 'ijin' ? `今のパワー ${power(ui.game, p, inst)}${inst.tapped ? '・寝ている' : ''}` : '';
+  zoomCard(inst, { game: ui.game, p, note });
 }
 
 function showLog() {
@@ -637,7 +628,8 @@ function showLog() {
 
 function showGrave(p) {
   const pl = ui.game.players[p];
-  openSheet(`<h3>${esc(pl.name)}の墓地（${pl.grave.length}）</h3><div class="grid">${pl.grave.map((c) => cardFace(c, { size: 's' })).join('') || '<p class="empty">まだありません</p>'}</div>`, 'tall');
+  const s = openSheet(`<h3>${esc(pl.name)}の墓地（${pl.grave.length}）</h3><p class="zoom-hint">カードをタップすると拡大します</p><div class="grid">${pl.grave.map((c) => cardFace(c, { size: 's' })).join('') || '<p class="empty">まだありません</p>'}</div>`, 'tall');
+  zoomOnTap(s, (uid) => pl.grave.find((c) => c.uid === uid), p);
 }
 
 function showMenu() {
