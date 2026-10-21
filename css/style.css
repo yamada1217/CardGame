@@ -444,3 +444,31 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 @keyframes word { 0% { transform: translate(-50%, -50%) scale(2.6) rotate(-12deg); opacity: 0; } 25% { transform: translate(-50%, -50%) scale(1) rotate(-6deg); opacity: 1; } 70% { transform: translate(-50%, -60%) scale(1.05) rotate(-6deg); opacity: 1; } 100% { transform: translate(-50%, -80%) scale(1.1) rotate(-6deg); opacity: 0; } }
 .fx-spark { box-shadow: 0 0 10px 2px currentColor, 0 0 4px #fff; }
 .fx-ring { width: 260%; }
+
+/* ---------- 2色カード ---------- */
+.card.multi { background: linear-gradient(135deg, color-mix(in srgb, var(--c) 85%, #fff) 0, var(--c) 46%, #fff 49% 51%, var(--c2) 54%, color-mix(in srgb, var(--c2) 70%, #000)); }
+.card.multi.r-PSR { background: linear-gradient(135deg, var(--c) 0 46%, #fff 49% 51%, var(--c2) 54%) 0 0 / 100% 100%; animation: none; }
+.card.multi .lv { background: linear-gradient(135deg, var(--c) 50%, var(--c2) 50%); }
+.card.multi .card-in { background:
+  radial-gradient(70% 45% at 28% 32%, color-mix(in srgb, var(--c) 45%, transparent), transparent 70%),
+  radial-gradient(70% 45% at 72% 48%, color-mix(in srgb, var(--c2) 45%, transparent), transparent 70%),
+  linear-gradient(180deg, #2b231d, #17120f); }
+
+/* ---------- ハイケイの束と墓地の山 ---------- */
+.field-wrap { display: grid; grid-template-columns: 62px minmax(0, 1fr) 62px; align-items: center; gap: 4px; }
+.field-wrap .row.field { min-width: 0; }
+.hk-stack, .grave-pile { position: relative; width: 60px; height: 98px; border-radius: 10px; padding: 0; }
+.hk-stack.empty, .grave-pile.empty { border: 1.5px dashed rgba(255, 255, 255, .14); display: grid; place-items: center; font-size: 10px; color: var(--muted); }
+.hk-stack .slot { position: absolute; left: 1px; }
+.hk-stack .card { box-shadow: 0 -2px 6px rgba(0, 0, 0, .55); }
+.pile-count { position: absolute; top: -6px; right: -4px; z-index: 5; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; display: grid; place-items: center; font-size: 11px; background: var(--green); color: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .5); }
+.grave-pile .card { position: absolute; left: 1px; top: 0; filter: grayscale(.55) brightness(.75); box-shadow: 3px 3px 0 #2a221c, 6px 6px 0 #1d1814; }
+.grave-pile.empty .pile-label { position: static; background: none; }
+.pile-label { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); z-index: 2; white-space: nowrap; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 999px; background: rgba(12, 9, 7, .85); border: 1px solid var(--line); }
+.seg { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 4px 0 8px; }
+.seg-btn { flex: none; padding: 7px 12px; border-radius: 999px; background: var(--panel); font-size: 12px; font-weight: 800; display: inline-flex; gap: 5px; align-items: center; border: 1px solid transparent; }
+.seg-btn small { color: var(--muted); font-weight: 700; }
+.seg-btn.on { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 18%, var(--panel)); }
+.seg-btn:disabled { opacity: .35; }
+.pile-grid { justify-content: flex-start; }
+.card .emblem.duo { font-size: 26px; letter-spacing: -.02em; margin-top: 22%; } .card.l .emblem.duo, .card.xl .emblem.duo { font-size: 54px; } .card.s .emblem.duo { font-size: 18px; }
