@@ -1,5 +1,5 @@
 // シンプルなCPU。エンジンの行動を1つずつ返す
-import { def, checkPlay, canAttackWith, canBlockPair, canStand, power, levelSum, pressure, playLevel, findOnBoard, stat, ijinsOf } from './engine.js';
+import { def, checkPlay, canAttackWith, canBlockPair, canStand, power, levelSum, pressure, playLevel, findOnBoard, stat, ijinsOf, rule } from './engine.js';
 
 // 今CPUが取るべき行動（なければ null）
 export function cpuAction(state, p) {
@@ -23,7 +23,7 @@ function cpuMainAction(state, p) {
 
   if (state.rights.mana > 0) {
     const k = me.hand.find((c) => def(c).type === 'maryoku');
-    if (k) return { type: 'placeMana', uid: k.uid, faceUp: true };
+    if (k) return { type: 'placeMana', uid: k.uid, faceUp: !rule(state, 'noFaceUpMana', p) };
     if (me.hand.length > 1) {
       // マリョクがなければ、当分使えない一番重いカードを裏向きで置く
       const heavy = [...me.hand].sort((a, b) => def(b).level - def(a).level)[0];

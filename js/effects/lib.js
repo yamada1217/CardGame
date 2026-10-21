@@ -67,3 +67,23 @@ export function madou(s, p, color) {
   if (fieldColors(s, p).has(color)) return true;
   return hasColor(s, p, color);
 }
+
+// 徴募：自分のエンドフェイズ開始時、このターンにアタッカーが破壊されているなら（戦場か墓地で）
+export const choboOk = (s, p) => s.tf.attackerDestroyed || (s.tf.battled && rule(s, 'choboBattle', p));
+export function chobo(run, opt = null) {
+  return {
+    on: 'endStart', mine: true, zones: ['field', 'grave'], chobo: true, opt,
+    if: (s, f) => choboOk(s, f.p),
+    run: (s, it) => { if (it.zone === 'grave') once(it, '_c', () => emit(s, 'chobo', { p: it.p, uid: it.src })); run(s, it); },
+  };
+}
+// 決起
+export const kikki = (run, opt = '決起：能力を使う？') => ({ on: 'manaPlaced', kikki: true, opt, if: (s, f, ev) => ev.p === f.p && kikkiOk(s, f.p), run });
+// 執筆（ハイケイが戦場に置かれたとき）
+export function shippitsu(run, extra = {}) {
+  return { on: 'enter', shippitsu: true, ...extra, if: (s, f, ev) => { const e = findOnBoard(s, ev.uid); return !!e && e.zone === 'field' && stat(s, e.inst, e).types.has('haikei') && (!extra.if || extra.if(s, f, ev, e)); }, run };
+}
+// ラベルの選択肢
+export const choice = (s, it, key, title, obj) => pick(s, it, key, { title, options: Object.keys(obj), labels: obj, min: 1, max: 1 });
+export const stones = (s, p) => s.players[p].mana.filter((m) => m.faceUp && isStone(m));
+export const enteredF = (s, ev) => findOnBoard(s, ev.uid);

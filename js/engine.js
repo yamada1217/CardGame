@@ -3,7 +3,7 @@ import { CARDS, DECKS } from './cards.js';
 import {
   E, ITEMS, def, opp, clone, random, shuffle, log, name, turnOrder, pushFront, findOnBoard, list, stat, active, rule,
   power, pressure, isDouble, levelSum, availableColors, hasColor, move, putOnField, emit, draw, tap, untap, destroy,
-  mahouBlocked, ownerOf, payMana, isIjin, ijinsOf, haikeisOf, pick, manaColors,
+  mahouBlocked, ownerOf, payMana, isIjin, ijinsOf, haikeisOf, pick, manaColors, endGame,
 } from './core.js';
 import './effects/index.js';
 
@@ -81,7 +81,7 @@ export function canAttackWith(s, p, inst) {
   const f = findOnBoard(s, inst.uid);
   if (!f || f.p !== p || (f.zone !== 'field' && f.zone !== 'guardians')) return false;
   const st = stat(s, inst, f);
-  if (!st.types.has('ijin') || st.kw.cannotAttack || rule(s, 'cannotAttack', f)) return false;
+  if (!st.types.has('ijin') || st.kw.cannotAttack || rule(s, 'cannotAttack', f) || rule(s, 'noBattle', p)) return false;
   if (inst.tapped && !st.kw.attackTapped) return false;
   return inst.enteredTurn !== s.turnNo || !!st.kw.sokuo || s.tmp.some((t) => t.sokuoFor === inst.uid);
 }
@@ -124,7 +124,7 @@ export function checkPlay(s, p, uid) {
   if (cols.length && !cols.some((c) => hasColor(s, p, c)) && !rule(s, 'ignoreColor', p, inst, d)) return { ok: false, why: `${cols.map((c) => ({ red: '赤', blue: '青', green: '緑', yellow: '黄', purple: '紫' })[c]).join('か')}の表向きマリョクが必要です` };
   const lv = playLevel(s, p, inst), have = levelSum(s, p);
   if (have < lv) {
-    const red = E[d.id]?.play?.reduce?.(s, p, inst) || 0;
+    const red = (E[d.id]?.play?.reduce?.(s, p, inst) || 0) + (d.type === 'ijin' ? tapReduce(s, p) : 0);
     if (have < lv - red) return { ok: false, why: `レベル${lv}が必要です（今は${have}）` };
   }
   if (d.type === 'ijin' && !summonRight(s, p, inst)) return { ok: false, why: 'イジン召喚権がありません' };
@@ -138,6 +138,11 @@ export function checkPlay(s, p, uid) {
   }
   return { ok: true };
 }
+
+function tapReduceOpts(s, p) {
+  return rule(s, 'tapReduce', p) ? ijinsOf(s, p).filter((c) => !c.tapped).map((c) => c.uid).slice(0, 99) : [];
+}
+function tapReduce(s, p) { return Math.min(3, tapReduceOpts(s, p).length); }
 
 function summonRight(s, p, inst) {
   if (s.rights.summon > 0) return 'summon';
@@ -227,15 +232,6 @@ export function run(s) {
   }
 }
 
-export function endGame(s, winner, reason) {
-  if (s.phase === 'over') return;
-  s.phase = 'over';
-  s.winner = winner;
-  s.winReason = reason;
-  s.prompt = null;
-  s.queue = [];
-  log(s, `${s.players[winner].name}の勝利！（${reason}）`, winner);
-}
 
 // ターンを途中で終える（タイムディレイション等）
 export function abortTurn(s) {
@@ -303,6 +299,14 @@ function playCard(s, it) {
   if (!it.placed && sc?.play?.payReduce && levelSum(s, p) < playLevel(s, p, inst)) {
     const r = sc.play.payReduce(s, it, levelSum(s, p), playLevel(s, p, inst));
     if (r === undefined) return;
+  }
+  // 劉備：自分のイジンを寝かせてレベルを下げる
+  if (!it.placed && d.type === 'ijin' && levelSum(s, p) < playLevel(s, p, inst) - (it.tapRed || 0)) {
+    const need = playLevel(s, p, inst) - levelSum(s, p);
+    const a = pick(s, it, 'tapRed', { title: `寝かせるイジンを${need}体選ぶ（1体につきレベル-1）`, options: tapReduceOpts(s, p), min: need, max: need });
+    if (!a) return;
+    for (const u of a) tap(s, u);
+    it.tapRed = a.length;
   }
   // 千利休：手札を墓地に置いて魔力コストを減らす
   if (!it.placed && d.type === 'mahou') {
@@ -524,4 +528,4 @@ export function waitingFor(s) {
   return s.turn;
 }
 
-export { list, availableColors, manaColors, isIjin, CARDS };
+export { list, availableColors, manaColors, isIjin, CARDS, rule };

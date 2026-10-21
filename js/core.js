@@ -199,6 +199,8 @@ export function stat(s, x, where = null) {
       if (t.uid === inst.uid && t.inc === inst.inc && t.grant && !st.lost) applyGrant(st, t.grant);
       if (t.aura && !st.lost) applyGrant(st, E[t.src].tmpAura[t.aura](s, t, tgt));
     }
+    const post = E[inst.id]?.post;
+    if (post && !st.lost && zone === 'field') applyGrant(st, post(s, tgt, st));
     if (st.losePress) st.press = 0;
     if (st.kw.noSokuo) st.kw.sokuo = false;
   } finally { guard.delete(inst.uid); }
@@ -656,6 +658,16 @@ export function emit(s, on, ev = {}) {
     }
   }
   pushFront(s, items);
+}
+
+export function endGame(s, winner, reason) {
+  if (s.phase === 'over') return;
+  s.phase = 'over';
+  s.winner = winner;
+  s.winReason = reason;
+  s.prompt = null;
+  s.queue = [];
+  log(s, `${s.players[winner].name}の勝利！（${reason}）`, winner);
 }
 
 // ---------- 遺業 ----------
