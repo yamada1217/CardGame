@@ -282,6 +282,12 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .zoom-actions .btn { white-space: nowrap; font-size: 14px; padding: 0 12px; }
 .card.xl { width: 170px; height: 243px; }
 .card.xl .emblem { font-size: 78px; }
+.chip.stand { border: 0; cursor: pointer; color: #fff; outline: 2px solid var(--gold); animation: pulse 1.2s infinite; }
+.chip.stand.on { background: var(--gold); color: #2a1d08; animation: none; }
+.chip.c-yellow { background: var(--yellow, #c9a227); } .chip.c-purple { background: var(--purple, #7b4fa8); } .dot.c-yellow { background: var(--yellow, #c9a227); } .dot.c-purple { background: var(--purple, #7b4fa8); }
+.card.c-yellow { --c: var(--yellow, #c9a227); } .card.c-purple { --c: var(--purple, #7b4fa8); }
+.opt.label { min-width: 120px; min-height: 48px; justify-content: center; background: rgba(255, 255, 255, .06); }
+.opt-text { font-weight: 800; font-size: 14px; padding: 6px 10px; }
 
 /* ---------- カード操作のエフェクト ---------- */
 #fx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 25; overflow: hidden; }

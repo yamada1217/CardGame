@@ -1,5 +1,5 @@
 import { CARDS, COLORS, DECKS, LEGACY_TEXT } from './cards.js';
-import { createGame, applyAction, def, checkPlay, canAttackWith, canBlockWith, canBlockPair, power, levelSum, isDouble, effectiveLevel, waitingFor, findOnBoard } from './engine.js';
+import { createGame, applyAction, def, checkPlay, canAttackWith, canBlockWith, canBlockPair, canStand, power, levelSum, pressure, effectiveLevel, waitingFor, findOnBoard } from './engine.js';
 import { cpuAction } from './ai.js';
 import { cardFace as viewCardFace, cardBack, esc } from './cardview.js';
 import { zoomCard, closeZoom } from './zoom.js';
@@ -58,6 +58,11 @@ function vibrate(ms = 12) {
 const cardFace = (inst, opts = {}) => viewCardFace(inst, { game: ui.game, p: ME, seen: ui.seen, ...opts });
 
 function manaChip(m) {
+  const g = ui.game;
+  if (!m.faceUp && g && g.phase === 'block' && g.turn === FOE && canStand(g, ME, m)) {
+    const on = Object.values(ui.blocks).some((l) => l.includes(m.uid));
+    return `<button class="chip down stand${on ? ' on' : ''}" data-uid="${m.uid}" data-stand="${m.uid}" title="スタンド：${esc(def(m).name)}">立</button>`;
+  }
   if (!m.faceUp) return `<span class="chip down" data-uid="${m.uid}" title="裏向き：レベル1">1</span>`;
   const d = def(m);
   return `<span class="chip c-${d.color || 'none'}" data-uid="${m.uid}" title="${esc(d.name)}">${d.level}</span>`;
@@ -300,7 +305,7 @@ function renderGame() {
       </header>
 
       <section class="side foe">
-        <div class="mana-row">${cpu.mana.map(manaChip).join('')}<span class="lvsum">Lv ${levelSum(cpu)}</span></div>
+        <div class="mana-row">${cpu.mana.map(manaChip).join('')}<span class="lvsum">Lv ${levelSum(g, FOE)}</span></div>
         <div class="row guardians">${cpu.guardians.map((c) => guardian(c, FOE)).join('') || '<span class="empty">ガーディアンなし</span>'}</div>
         <div class="row field">${ijins(cpu).map((c) => fieldCard(c, FOE)).join('')}${haikeis(cpu).map((c) => fieldCard(c, FOE)).join('')}</div>
       </section>
@@ -313,7 +318,7 @@ function renderGame() {
       <section class="side mine">
         <div class="row field">${ijins(me).map((c) => fieldCard(c, ME)).join('')}${haikeis(me).map((c) => fieldCard(c, ME)).join('')}</div>
         <div class="row guardians">${me.guardians.map((c) => guardian(c, ME)).join('') || '<span class="empty">ガーディアンなし</span>'}</div>
-        <div class="mana-row">${me.mana.map(manaChip).join('')}<span class="lvsum">Lv ${levelSum(me)}</span>
+        <div class="mana-row">${me.mana.map(manaChip).join('')}<span class="lvsum">Lv ${levelSum(g, ME)}</span>
           <span class="rights"><i class="${g.turn === ME && g.rights.mana ? 'on' : ''}">魔</i><i class="${g.turn === ME && g.rights.summon ? 'on' : ''}">召</i><i class="${g.turn === ME && !g.battleUsed ? 'on' : ''}">戦</i></span>
         </div>
       </section>
@@ -369,6 +374,16 @@ function bindGame() {
     if (c) showHandCard(c);
   });
   $app.querySelectorAll('.side .card').forEach((el) => el.onclick = () => { if (!ui.longPressed) onBoardTap(el); ui.longPressed = false; });
+  // スタンド：魔力ゾーンの裏向きイジンをブロッカーにする
+  $app.querySelectorAll('[data-stand]').forEach((el) => el.onclick = () => {
+    const uid = el.dataset.stand;
+    if (!ui.focusAtk) return toast('先に相手のアタッカーをタップ');
+    if (!canBlockPair(g, ME, findOnBoard(g, uid).inst, findOnBoard(g, ui.focusAtk).inst)) return toast('このカードではブロックできません');
+    const was = (ui.blocks[ui.focusAtk] || []).includes(uid);
+    for (const k of Object.keys(ui.blocks)) ui.blocks[k] = ui.blocks[k].filter((u) => u !== uid);
+    if (!was) ui.blocks[ui.focusAtk] = [...(ui.blocks[ui.focusAtk] || []), uid];
+    vibrate(); render();
+  });
   bindLongPress();
 }
 
@@ -400,7 +415,7 @@ function onBoardTap(el) {
   const inst = pl.field.find((c) => c.uid === uid);
   const guard = pl.guardians.find((c) => c.uid === uid);
 
-  if (ui.mode === 'attack' && mine && inst && canAttackWith(g, ME, inst)) {
+  if (ui.mode === 'attack' && mine && (inst || guard) && canAttackWith(g, ME, inst || guard)) {
     ui.picks = ui.picks.includes(uid) ? ui.picks.filter((u) => u !== uid) : [...ui.picks, uid];
     vibrate();
     return render();
@@ -434,8 +449,8 @@ async function onAction(a) {
   if (a === 'end') return act({ type: 'endTurn' });
   if (a === 'decide') { ui.sheetKey = null; return syncDecisionSheet(g, true); }
   if (a === 'block') {
-    const one = g.battle.attackers.find((x) => (ui.blocks[x] || []).length === 1 && isDouble(g, FOE, g.players[FOE].field.find((c) => c.uid === x)));
-    if (one) return toast('ダブルプレッシャーは2体以上でブロックしてください');
+    const one = g.battle.attackers.find((x) => { const n = (ui.blocks[x] || []).length; const f = findOnBoard(g, x); return f && n > 0 && n < pressure(g, FOE, f.inst); });
+    if (one) return toast(`このアタッカーは${pressure(g, FOE, findOnBoard(g, one).inst)}体以上でブロックしてください`);
     const missing = g.battle.attackers.filter((x) => !(ui.blocks[x] || []).length).length;
     if (missing && !(await confirmSheet('ブロックしていないアタッカーがいます。このままだと負けます。確定しますか？', '確定する'))) return;
     const blocks = ui.blocks;
@@ -552,12 +567,13 @@ function zoomOnTap(container, find, p) {
   });
 }
 
-function optionCard(uid) {
+function optionCard(uid, pr = {}) {
+  if (pr.labels?.[uid]) return `<button class="opt label" data-opt="${esc(uid)}"><span class="opt-text">${esc(pr.labels[uid])}</span></button>`;
   const f = findOnBoard(ui.game, uid);
   if (!f) return '';
   const where = { field: '戦場', guardians: 'ガーディアン', mana: '魔力ゾーン', hand: '手札', grave: '墓地', deck: '山札' }[f.zone];
   const side = f.p === ME ? '自分' : '相手';
-  const hidden = f.zone === 'guardians' || (f.zone === 'mana' && !f.inst.faceUp && f.p !== ME);
+  const hidden = !pr.reveal && (f.zone === 'guardians' || (f.zone === 'mana' && !f.inst.faceUp && f.p !== ME));
   const face = hidden ? cardBack(uid, { size: 's', label: where }) : cardFace(f.inst, { size: 's', p: f.p });
   return `<button class="opt" data-opt="${uid}">${face}<span class="opt-label">${side}の${where}</span></button>`;
 }
@@ -571,10 +587,15 @@ function showPrompt(g, key) {
     s.querySelectorAll('[data-c]').forEach((b) => b.onclick = () => { closeSheet(); act({ type: 'choose', picks: b.dataset.c === '1' ? ['yes'] : [] }); });
     return;
   }
+  if (pr.info) {
+    const s = openSheet(`<h3>カードを見る</h3>${head}<div class="grid pick-grid">${pr.options.map((u) => optionCard(u, pr)).join('')}</div><div class="sheet-actions row"><button class="btn primary" data-ok>確認</button></div>`, 'tall locked');
+    s.querySelector('[data-ok]').onclick = () => { closeSheet(); act({ type: 'choose', picks: [] }); };
+    return;
+  }
   const picks = new Set();
   const s = openSheet(`<h3>${pr.min === 0 ? '能力の発動（任意）' : '選んでください'}</h3>${head}
     <p class="zoom-hint">カードをタップすると拡大して選べます</p>
-    <div class="grid pick-grid">${pr.options.map(optionCard).join('')}</div>
+    <div class="grid pick-grid">${pr.options.map((u) => optionCard(u, pr)).join('')}</div>
     <div class="sheet-actions row">
       ${pr.min === 0 ? '<button class="btn ghost" data-skip>使わない</button>' : ''}
       <button class="btn ghost" data-peek>盤面を見る</button>
@@ -595,7 +616,7 @@ function showPrompt(g, key) {
   s.querySelectorAll('[data-opt]').forEach((b) => b.onclick = () => {
     const u = b.dataset.opt;
     const f = findOnBoard(ui.game, u);
-    if (!f || b.querySelector('.card.back')) return toggle(u);
+    if (!f || b.querySelector('.card.back') || pr.labels?.[u]) return toggle(u);
     zoomCard(f.inst, { game: ui.game, p: f.p, actions: [{ label: picks.has(u) ? '選択を外す' : 'これを選ぶ', primary: !picks.has(u), onClick: () => toggle(u) }] });
   });
   const srcEl = s.querySelector('.prompt-src .card');
