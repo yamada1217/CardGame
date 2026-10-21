@@ -1,18 +1,35 @@
 {
   "rules": {
+    ".read": false,
+    ".write": false,
     "rooms": {
       "$code": {
-        ".read": true,
-        "host": { ".write": "!data.exists()" },
-        "guest": { ".write": "!data.exists()" },
-        "created": { ".write": "!data.exists()" },
-        "start": { ".write": "newData.child('n').val() === 1 && !data.exists() || data.exists() && newData.child('n').val() === data.child('n').val() + 1" },
-        "presence": { "$role": { ".write": true, ".validate": "newData.isBoolean()" } },
+        ".read": "auth != null",
+        ".validate": "$code.matches(/^[A-Z2-9]{5}$/)",
+        "created": { ".write": "auth != null && !data.exists()" },
+        "host": {
+          ".write": "auth != null && !data.exists()",
+          ".validate": "newData.hasChildren(['name', 'deck', 'cid']) && newData.child('name').isString() && newData.child('name').val().length <= 12"
+        },
+        "guest": {
+          ".write": "auth != null && !data.exists() && root.child('rooms').child($code).child('host').exists()",
+          ".validate": "newData.hasChildren(['name', 'deck', 'cid']) && newData.child('name').isString() && newData.child('name').val().length <= 12"
+        },
+        "start": {
+          ".write": "auth != null && ((!data.exists() && newData.child('n').val() === 1) || (data.exists() && newData.child('n').val() === data.child('n').val() + 1))",
+          ".validate": "newData.hasChildren(['n', 'seed', 'first', 'names', 'decks'])"
+        },
+        "presence": {
+          "$role": {
+            ".write": "auth != null && ($role === 'host' || $role === 'guest')",
+            ".validate": "newData.isBoolean()"
+          }
+        },
         "games": {
           "$n": {
             "$action": {
-              ".write": "!data.exists()",
-              ".validate": "newData.hasChildren(['p', 'type'])"
+              ".write": "auth != null && !data.exists()",
+              ".validate": "newData.hasChildren(['p', 'type']) && (newData.child('p').val() === 0 || newData.child('p').val() === 1)"
             }
           }
         }

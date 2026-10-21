@@ -199,7 +199,8 @@ async function startHost() {
   try {
     ui.online = await hostRoom({ name: myName(), deck: ui.myDeck }, onlineHandlers);
   } catch (e) {
-    toast(`部屋を作れませんでした：${e.message}`);
+    console.warn(e);
+    toast('部屋を作れませんでした。通信状態を確認して、もう一度お試しください');
     ui.screen = 'title'; render();
   }
 }

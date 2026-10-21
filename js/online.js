@@ -11,6 +11,13 @@ async function firebaseBackend() {
   const { initializeApp } = await import(SDK('app'));
   const db = await import(SDK('database'));
   const app = initializeApp(FIREBASE_CONFIG);
+  // 匿名ログイン。ルールで「ログインした人だけ書ける」にして、いたずらを防ぐ
+  try {
+    const auth = await import(SDK('auth'));
+    await auth.signInAnonymously(auth.getAuth(app));
+  } catch (e) {
+    console.warn('匿名ログインに失敗しました', e);
+  }
   const d = db.getDatabase(app);
   const r = (path) => db.ref(d, path);
   return {
@@ -90,7 +97,8 @@ export const onlineAvailable = () => !!FIREBASE_CONFIG || new URLSearchParams(lo
 let backendPromise = null;
 function backend() {
   const local = new URLSearchParams(location.search).get('backend') === 'local' || !FIREBASE_CONFIG;
-  backendPromise ??= local ? Promise.resolve(localBackend()) : firebaseBackend();
+  // 失敗したら次に押したとき作り直す
+  backendPromise ??= local ? Promise.resolve(localBackend()) : firebaseBackend().catch((e) => { backendPromise = null; throw e; });
   return backendPromise;
 }
 
