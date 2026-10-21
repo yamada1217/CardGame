@@ -2,6 +2,7 @@
 // 描画の前に消えるカードの位置を控えておき、描画の後に重ねて再生する
 import { def } from './engine.js';
 import { cardFace } from './cardview.js';
+import { sfx } from './sfx.js';
 
 const ZONES = ['hand', 'mana', 'field', 'guardians', 'grave', 'deck'];
 const DURATION = 1100;
@@ -98,6 +99,7 @@ export function runFx(root, fx, render, me) {
   const L = getLayer();
   // ブロックの直後は、ぶつかってから壊れるように少し遅らせる
   const clash = fx.some((e) => e.kind === 'block');
+  for (const k of new Set(fx.map((e) => e.kind))) if (k !== 'spend') setTimeout(() => sfx(k), clash && k !== 'block' ? 320 : 0);
   let big = 0;
   for (const s of shots) {
     const delay = clash && s.kind !== 'block' ? 320 : 0;

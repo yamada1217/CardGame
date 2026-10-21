@@ -1,4 +1,5 @@
 // カードの描画（対戦画面・デッキ構築・拡大表示で共通）
+import { artFor } from './art.js';
 import { COLORS, LEGACY_TEXT } from './cards.js';
 import { def, power, effectiveLevel } from './engine.js';
 
@@ -37,8 +38,9 @@ export function cardFace(inst, { size = 'm', game = null, p = 0, role = null, ex
   const lv = game && !card && d.type === 'haikei' ? effectiveLevel(game, p, d) : d.level;
   const showText = size === 'l' || size === 'xl';
   return `
-    <div class="card ${size} c-${color} r-${esc(d.rarity || 'N')} t-${d.type}${inst.tapped ? ' tapped' : ''}${enter} ${extra}" data-uid="${inst.uid || ''}" data-id="${d.id}">
+    <div class="card ${size} c-${color} r-${esc(d.rarity || 'N')} t-${d.type}${d.type !== 'maryoku' ? ' has-art' : ''}${inst.tapped ? ' tapped' : ''}${enter} ${extra}" data-uid="${inst.uid || ''}" data-id="${d.id}">
       <div class="card-in">
+        <div class="art" style='background-image:${artFor(d)}'></div>
         <div class="lv">${lv}</div>
         ${d.type === 'mahou' ? `<div class="cost" title="魔力コスト">${d.cost}</div>` : ''}
         <div class="emblem">${esc(d.type === 'maryoku' ? (COLORS[d.color]?.name || '魔') : d.name[0])}</div>

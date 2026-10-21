@@ -397,3 +397,22 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 @keyframes shake { 25% { transform: translate(-3px, 1px); } 50% { transform: translate(3px, -1px); } 75% { transform: translate(-2px, 0); } }
 @keyframes shake-hard { 15% { transform: translate(-7px, 3px); } 30% { transform: translate(6px, -4px); } 45% { transform: translate(-5px, 2px); } 60% { transform: translate(4px, -2px); } 80% { transform: translate(-2px, 1px); } }
 @media (prefers-reduced-motion: reduce) { #fx-layer { display: none; } }
+
+/* ---------- カードの絵 ---------- */
+.card-in { isolation: isolate; }
+.card .art { position: absolute; inset: 0; z-index: -1; background: center / cover no-repeat; }
+.card .art::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(12, 9, 7, .55) 68%, rgba(12, 9, 7, .92)); }
+.card.t-maryoku .art { opacity: .9; }
+.card.t-maryoku .art::after { display: none; }
+.card.has-art .emblem { display: none; }
+.card.has-art .card-in { justify-content: flex-end; padding-bottom: 5px; }
+.card.has-art.t-ijin .card-in { padding-bottom: 26px; }
+.card.s.has-art.t-ijin .card-in { padding-bottom: 21px; }
+.card.l.has-art.t-ijin .card-in { padding-bottom: 46px; }
+.card.xl.has-art.t-ijin .card-in { padding-bottom: 46px; }
+.card.has-art .name, .card.has-art .type { text-shadow: 0 1px 2px #000, 0 0 8px #000; color: #fff; }
+.card.has-art .type { color: #d6cbbb; }
+.card.l.has-art .text { background: rgba(12, 9, 7, .72); border-radius: 8px; margin: 6px 8px 0; padding: 6px 8px; }
+.card.has-art .kws span { background: rgba(0, 0, 0, .55); }
+.sound-btn { position: absolute; top: calc(12px + var(--safe-top)); right: 14px; z-index: 2; font-size: 18px; }
+.card.has-art .name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
