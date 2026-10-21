@@ -113,9 +113,9 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ---------- カード ---------- */
-.card { --c: var(--none); position: relative; border-radius: 10px; background: linear-gradient(160deg, color-mix(in srgb, var(--c) 55%, #fff 0%), color-mix(in srgb, var(--c) 35%, #120e0b)); padding: 2px; transition: transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .2s, opacity .2s; flex: none; }
-.card.c-red { --c: var(--red); } .card.c-blue { --c: var(--blue); } .card.c-green { --c: var(--green); } .card.c-none { --c: var(--gold); }
-.card-in { position: relative; height: 100%; border-radius: 8px; overflow: hidden; background:
+.card { --c: var(--none); --c2: var(--c); position: relative; border-radius: 10px; border: 2.5px solid transparent; padding: 3px; background: var(--inner) padding-box, var(--frame) border-box; transition: transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .2s, opacity .2s; flex: none; }
+.card.c-red { --c: var(--red); } .card.c-blue { --c: var(--blue); } .card.c-green { --c: var(--green); } .card.c-none { --c: #d9d0c2; }
+.card-in { position: relative; height: 100%; border-radius: 6px; overflow: hidden; background:
   radial-gradient(90% 60% at 50% 38%, color-mix(in srgb, var(--c) 45%, transparent), transparent 70%),
   linear-gradient(180deg, #2b231d, #17120f); display: flex; flex-direction: column; align-items: center; }
 .card.m { width: 84px; height: 120px; }
@@ -340,12 +340,18 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 @keyframes fx-charge { 0% { transform: scale(1.8); filter: brightness(2); opacity: 0; } 100% { transform: none; } }
 
 /* ---------- レア度ごとの枠（N < C < R < SR < PSR） ---------- */
-.card:where(.r-C) { background: linear-gradient(160deg, #e9e4dc, color-mix(in srgb, var(--c) 45%, #8d857b) 45%, color-mix(in srgb, var(--c) 35%, #120e0b)); }
-.card:where(.r-R) { background: linear-gradient(150deg, #f2f9ff, #9cc4ee 30%, #4f79a8 60%, #d7ecff 85%, #34557e); box-shadow: 0 0 8px rgba(140, 195, 255, .5); }
-.card:where(.r-SR) { background: linear-gradient(150deg, #fff7d6, #f1c45e 28%, #9a6416 55%, #ffe39a 78%, #b07a22); box-shadow: 0 0 12px rgba(255, 200, 90, .65), 0 0 2px #fff3c4; }
-.card:where(.r-PSR) { background: linear-gradient(120deg, #ff6b9a, #ffd36b, #7dffb0, #6bd7ff, #b98cff, #ff6b9a) 0 0 / 300% 300%; box-shadow: 0 0 14px rgba(255, 140, 220, .7), 0 0 26px rgba(120, 200, 255, .45); animation: rb-border 4s linear infinite; }
+.card, .tile { --inner: linear-gradient(180deg, var(--c) 0 50%, var(--c2) 50% 100%); --frame: linear-gradient(160deg, #6f675e, #3d3631 50%, #25201c); }
+.r-C { --frame: linear-gradient(160deg, #fbfbfd, #bfc3cb 32%, #7a7f89 58%, #eceef3 82%, #9ca0aa); }
+.r-R { --frame: linear-gradient(150deg, #f2f9ff, #9cc4ee 30%, #4f79a8 60%, #d7ecff 85%, #34557e); }
+.r-SR { --frame: linear-gradient(150deg, #fff7d6, #f1c45e 28%, #9a6416 55%, #ffe39a 78%, #b07a22); }
+.r-PSR { --frame: linear-gradient(120deg, #ff6b9a, #ffd36b, #7dffb0, #6bd7ff, #b98cff, #ff6b9a); }
+.card.r-R, .tile.r-R { box-shadow: 0 0 8px rgba(140, 195, 255, .5); }
+.card.r-SR, .tile.r-SR { box-shadow: 0 0 12px rgba(255, 200, 90, .65), 0 0 2px #fff3c4; }
+.card.r-PSR, .tile.r-PSR { background-size: 100% 100%, 300% 300%; box-shadow: 0 0 14px rgba(255, 140, 220, .7), 0 0 26px rgba(120, 200, 255, .45); animation: rb-border 4s linear infinite; }
+.card.s, .card.g { border-width: 1.5px; padding: 2px; }
+.card.l, .card.xl { border-width: 4px; padding: 4px; }
 .card.r-PSR.can, .card.r-PSR.blocking { animation: rb-border 4s linear infinite, glow 1.4s ease-in-out infinite; }
-@keyframes rb-border { to { background-position: 300% 0; } }
+@keyframes rb-border { to { background-position: 0 0, 300% 0; } }
 .card.r-R .name, .card.r-SR .name, .card.r-PSR .name { text-shadow: 0 0 6px rgba(255, 255, 255, .35); }
 /* 光の帯が走る */
 .card.r-SR .card-in::after, .card.r-PSR .card-in::after { content: ''; position: absolute; inset: -40% -60%; background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, .55) 50%, transparent 58%); transform: translateX(-70%); animation: shine 3.6s ease-in-out infinite; pointer-events: none; mix-blend-mode: soft-light; z-index: 2; }
@@ -446,8 +452,6 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .fx-ring { width: 260%; }
 
 /* ---------- 2色カード ---------- */
-.card.multi { background: linear-gradient(135deg, color-mix(in srgb, var(--c) 85%, #fff) 0, var(--c) 46%, #fff 49% 51%, var(--c2) 54%, color-mix(in srgb, var(--c2) 70%, #000)); }
-.card.multi.r-PSR { background: linear-gradient(135deg, var(--c) 0 46%, #fff 49% 51%, var(--c2) 54%) 0 0 / 100% 100%; animation: none; }
 .card.multi .lv { background: linear-gradient(135deg, var(--c) 50%, var(--c2) 50%); }
 .card.multi .card-in { background:
   radial-gradient(70% 45% at 28% 32%, color-mix(in srgb, var(--c) 45%, transparent), transparent 70%),
