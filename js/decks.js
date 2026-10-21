@@ -2,6 +2,7 @@
 // デッキは { id, name, cards: { カードID: 枚数 }, updated } の形で localStorage に置く。
 // 対戦で使うときは、カードIDの配列に展開してエンジンに渡す。
 import { CARDS, DECKS } from './cards.js';
+import { READY } from './effects/index.js';
 
 export const MIN_CARDS = 40;
 export const MAX_CARDS = 60; // ルール上の上限はないが、アプリでは60枚までにする
@@ -9,7 +10,7 @@ export const MAX_COPIES = 4;
 const KEY = 'ijinden.decks';
 
 // 効果が実装されていて、対戦で使えるカード
-export const playable = (id) => !!CARDS[id];
+export const playable = (id) => READY.has(id);
 
 function read() {
   try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; }
