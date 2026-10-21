@@ -131,7 +131,8 @@ export function checkPlay(s, p, uid) {
   if (d.type === 'mahou') {
     const cost = mahouCost(s, p, inst);
     const payable = rule(s, 'noFaceDownCost', p) ? pl.mana.filter((m) => m.faceUp).length : pl.mana.length;
-    if (payable < cost) return { ok: false, why: `魔力ゾーンに${cost}枚必要です` };
+    const extra = rule(s, 'discardForCost', p) ? pl.hand.length - 1 : 0;
+    if (payable + extra < cost) return { ok: false, why: `魔力ゾーンに${cost}枚必要です` };
     const why = mahouBlocked(s, p, d, inst);
     if (why) return { ok: false, why };
   }
@@ -303,6 +304,17 @@ function playCard(s, it) {
     const r = sc.play.payReduce(s, it, levelSum(s, p), playLevel(s, p, inst));
     if (r === undefined) return;
   }
+  // 千利休：手札を墓地に置いて魔力コストを減らす
+  if (!it.placed && d.type === 'mahou') {
+    const payable = rule(s, 'noFaceDownCost', p) ? pl.mana.filter((m) => m.faceUp).length : pl.mana.length;
+    const need = mahouCost(s, p, inst) - payable;
+    if (need > 0) {
+      const a = pick(s, it, 'disc', { title: `魔力コストのかわりに墓地に置く手札を${need}枚選ぶ`, options: pl.hand.filter((c) => c.uid !== inst.uid).map((c) => c.uid), min: need, max: need });
+      if (!a) return;
+      it.reduced = need;
+      for (const u of a) move(s, u, 'grave', { by: p });
+    }
+  }
   if (!it.placed) {
     it.placed = true;
     it.card = { uid: inst.uid, id: inst.id };
@@ -318,7 +330,7 @@ function playCard(s, it) {
       putOnField(s, p, inst);
       return;
     } else {
-      const cost = mahouCost(s, p, inst);
+      const cost = mahouCost(s, p, inst) - (it.reduced || 0);
       payMana(s, p, cost, { faceDownOk: !rule(s, 'noFaceDownCost', p) });
       log(s, `マホウ「${d.name}」を発動`, p);
       pl.grave.push(sc?.meisoOnUse ? { uid: inst.uid, id: inst.id, meiso: true } : { uid: inst.uid, id: inst.id });

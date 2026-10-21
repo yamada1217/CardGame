@@ -727,7 +727,7 @@ export const ITEMS = {
     if (!f || f.zone !== it.zone) return;
     if (t.once && !it.started) { if (s.tf.once[it.src + it.key]) return; s.tf.once[it.src + it.key] = true; }
     it.started = true;
-    if (t.opt && !t.voyage) {
+    if (t.opt) {
       const ok = confirm(s, it, '_opt', `${name(f.inst)}：${typeof t.opt === 'string' ? t.opt : '能力を使う？'}`);
       if (!ok) return;
     }
