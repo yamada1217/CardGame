@@ -3,6 +3,7 @@ import { createGame, applyAction, def, checkPlay, canAttackWith, canBlockWith, c
 import { cpuAction } from './ai.js';
 import { cardFace as viewCardFace, cardBack, esc } from './cardview.js';
 import { zoomCard, closeZoom } from './zoom.js';
+import { planFx, runFx } from './fx.js';
 import { onlineAvailable, hostRoom, joinRoom, roomUrl, savedSession } from './online.js';
 import { usableDecks, deckForMatch, sanitizeDeck, deckColors } from './decks.js';
 import { openDeckList } from './builder.js';
@@ -60,11 +61,11 @@ function manaChip(m) {
   const g = ui.game;
   if (!m.faceUp && g && g.phase === 'block' && g.turn === FOE && canStand(g, ME, m)) {
     const on = Object.values(ui.blocks).some((l) => l.includes(m.uid));
-    return `<button class="chip down stand${on ? ' on' : ''}" data-stand="${m.uid}" title="スタンド：${esc(def(m).name)}">立</button>`;
+    return `<button class="chip down stand${on ? ' on' : ''}" data-uid="${m.uid}" data-stand="${m.uid}" title="スタンド：${esc(def(m).name)}">立</button>`;
   }
-  if (!m.faceUp) return `<span class="chip down" title="裏向き：レベル1">1</span>`;
+  if (!m.faceUp) return `<span class="chip down" data-uid="${m.uid}" title="裏向き：レベル1">1</span>`;
   const d = def(m);
-  return `<span class="chip c-${d.color || 'none'}" title="${esc(d.name)}">${d.level}</span>`;
+  return `<span class="chip c-${d.color || 'none'}" data-uid="${m.uid}" title="${esc(d.name)}">${d.level}</span>`;
 }
 
 // ---------- 画面 ----------
@@ -73,7 +74,9 @@ function render() {
   if (ui.screen === 'title') return renderTitle();
   if (ui.screen === 'waiting') return renderWaiting();
   if (ui.screen === 'builder') return;
-  renderGame();
+  const fx = ui.fx || [];
+  ui.fx = null;
+  runFx($app, fx, renderGame, ME);
 }
 
 function renderTitle() {
@@ -145,7 +148,7 @@ const myDeckForMatch = () => deckForMatch(ui.myDeck) || 'R01';
 
 function resetBoardUi() {
   closeZoom();
-  Object.assign(ui, { screen: 'game', mode: null, picks: [], blocks: {}, blocksPrev: {}, focusAtk: null, pending: null, seen: new Set(), logOpen: false });
+  Object.assign(ui, { screen: 'game', mode: null, picks: [], blocks: {}, blocksPrev: {}, focusAtk: null, pending: null, seen: new Set(), logOpen: false, fx: null });
   closeSheet();
 }
 
@@ -179,7 +182,7 @@ const onlineHandlers = {
     const r = applyAction(ui.game, p, action);
     if (!r.ok) return; // 両端末で同じように無視されるので、ずれない
     ui.game = r.state;
-    if (!ui.replaying) announce(before, r.state);
+    if (!ui.replaying) { announce(before, r.state); ui.fx = planFx(before, r.state, p, action); }
     afterChange();
   },
   onPresence(on) {
@@ -470,6 +473,7 @@ function act(action, p = ME) {
   const before = ui.game;
   ui.game = r.state;
   announce(before, r.state);
+  ui.fx = planFx(before, r.state, p, action);
   afterChange();
 }
 
@@ -520,6 +524,7 @@ function step(p, action) {
     ui.game = applyAction(g, p, fb).state;
   } else ui.game = r.state;
   announce(before, ui.game);
+  ui.fx = planFx(before, ui.game, p, action);
   if (ui.game.phase !== 'block') { ui.focusAtk = null; ui.blocks = {}; ui.blocksPrev = {}; }
   render();
 }
