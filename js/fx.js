@@ -27,7 +27,7 @@ export function planFx(before, after, p, action) {
     else if (x.z === 'guardians') fx.push({ kind: 'guard', uid });
     else if (x.z === 'mana') fx.push({ kind: action?.type === 'play' && x.p === p ? 'spend' : 'mana', uid });
     else if (x.z === 'hand' && type === 'mahou') fx.push({ kind: 'magic', uid, c: x.c });
-    else if (y?.z === 'field') fx.push({ kind: type === 'haikei' ? 'place' : 'summon', uid });
+    else if (y?.z === 'field') fx.push({ kind: type === 'haikei' ? 'place' : 'summon', uid, c: x.c, p: y.p });
     else if (y?.z === 'mana') fx.push({ kind: 'charge', uid });
   }
   if (action?.type === 'declareAttack') (action.attackers || []).forEach((uid) => fx.push({ kind: 'attack', uid, p }));
@@ -78,6 +78,24 @@ function deco(L, cls, r, delay = 0, ms = DURATION) {
   return d;
 }
 
+// アニメ風の演出：集中線・インパクトフレーム・カットイン・文字
+function layerEl(L, cls, ms, css = '') {
+  const d = document.createElement('div');
+  d.className = cls;
+  if (css) d.style.cssText = css;
+  L.appendChild(d);
+  setTimeout(() => d.remove(), ms);
+  return d;
+}
+const speedLines = (L, x, y, color = '#fff', delay = 0) => layerEl(L, 'fx-speed', 700 + delay, `--x:${x}px;--y:${y}px;--col:${color};animation-delay:${delay}ms`);
+const impact = (L, delay = 0) => setTimeout(() => layerEl(L, 'fx-impact', 160), delay);
+function cutIn(L, title, sub, color, side) {
+  const d = layerEl(L, `fx-cutin ${side}`, 1300, `--col:${color}`);
+  d.innerHTML = `<div class="fx-band"><b>${title}</b><small>${sub}</small></div>`;
+}
+const word = (L, r, text, cls, delay = 0) => layerEl(L, `fx-word ${cls}`, 900 + delay, `left:${r.left + r.width / 2}px;top:${r.top + r.height / 2}px;animation-delay:${delay}ms`).textContent = text;
+const HUE = { red: '#ff5a3c', blue: '#4c8dff', green: '#3fd27a', yellow: '#ffd23c', purple: '#b06bff' };
+
 function shake(root, strong) {
   const g = root.querySelector('.game');
   if (!g) return;
@@ -111,10 +129,13 @@ export function runFx(root, fx, render, me) {
     L.appendChild(g);
     setTimeout(() => g.remove(), DURATION + delay);
     const cx = s.rect.left + s.rect.width / 2, cy = s.rect.top + s.rect.height / 2;
-    if (s.kind === 'destroy') { burst(L, cx, cy, 'destroy', 18, 110, delay + 120); deco(L, 'fx-cross', s.rect, delay); big = Math.max(big, 2); }
-    if (s.kind === 'guard') { burst(L, cx, cy, 'guard', 12, 80, delay + 100); big = Math.max(big, 1); }
+    if (s.kind === 'destroy') {
+      burst(L, cx, cy, 'destroy', 26, 150, delay + 100); deco(L, 'fx-cross', s.rect, delay);
+      speedLines(L, cx, cy, '#fff', delay); impact(L, delay + 60); word(L, s.rect, '撃破', 'red', delay + 80); big = Math.max(big, 2);
+    }
+    if (s.kind === 'guard') { burst(L, cx, cy, 'guard', 16, 100, delay + 100); word(L, s.rect, '破', 'gold', delay + 60); big = Math.max(big, 1); }
     if (s.kind === 'mana') burst(L, cx, cy, 'mana', 10, 60, delay);
-    if (s.kind === 'block') burst(L, cx, cy, 'block', 12, 70);
+    if (s.kind === 'block') { burst(L, cx, cy, 'block', 16, 90); impact(L, 0); word(L, s.rect, 'ガード', 'blue'); }
     if (s.kind === 'bounce') burst(L, cx, cy, 'bounce', 10, 70);
   }
   if (big) setTimeout(() => shake(root, big > 1), clash ? 320 : 60);
@@ -126,7 +147,9 @@ export function runFx(root, fx, render, me) {
       g.innerHTML = `<i class="fx-circle"></i><div class="fx-magic-card">${cardFace(e.c, { size: 'l' })}</div><i class="fx-wave"></i><i class="fx-wave w2"></i>`;
       L.appendChild(g);
       setTimeout(() => g.remove(), DURATION + 400);
-      burst(L, innerWidth / 2, innerHeight / 2, 'magic', 24, Math.min(innerWidth, 420) * .55, 300);
+      burst(L, innerWidth / 2, innerHeight / 2, 'magic', 32, Math.min(innerWidth, 420) * .6, 300);
+      speedLines(L, innerWidth / 2, innerHeight / 2, '#d9c4ff', 200);
+      cutIn(L, 'マホウ発動', def(e.c).name, HUE[def(e.c).color] || '#b48cff', 'right');
       const f = document.createElement('div'); f.className = 'fx-flash violet'; L.appendChild(f); setTimeout(() => f.remove(), 700);
     }
     if (['summon', 'place', 'attack', 'charge'].includes(e.kind)) {
@@ -138,9 +161,14 @@ export function runFx(root, fx, render, me) {
       setTimeout(() => host.classList.remove(cls), DURATION);
       const r = host.getBoundingClientRect();
       const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-      if (e.kind === 'summon') { deco(L, 'fx-pillar', r); burst(L, cx, cy, 'summon', 12, 70, 150); }
+      if (e.kind === 'summon') {
+        deco(L, 'fx-pillar', r); burst(L, cx, cy, 'summon', 16, 90, 150);
+        // レベル5以上は登場カットイン
+        const d = def(e.c);
+        if (d.level >= 5) { cutIn(L, '降臨', d.name, HUE[d.color] || '#ffd36b', e.p === me ? 'left' : 'right'); speedLines(L, cx, cy, '#ffe9a8', 100); impact(L, 380); setTimeout(() => shake(root, true), 380); }
+      }
       if (e.kind === 'place') { deco(L, 'fx-quake', r, 250); burst(L, cx, r.bottom, 'place', 12, 70, 300); }
-      if (e.kind === 'attack') { deco(L, `fx-streak ${e.p === me ? 'up' : 'down'}`, r); burst(L, cx, cy, 'attack', 8, 50, 120); }
+      if (e.kind === 'attack') { deco(L, `fx-streak ${e.p === me ? 'up' : 'down'}`, r); burst(L, cx, cy, 'attack', 12, 70, 120); speedLines(L, cx, cy, '#ffc28a'); }
       if (e.kind === 'charge') burst(L, cx, cy, 'summon', 6, 30);
     }
   }
