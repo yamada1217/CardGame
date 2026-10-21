@@ -1,0 +1,22 @@
+{
+  "rules": {
+    "rooms": {
+      "$code": {
+        ".read": true,
+        "host": { ".write": "!data.exists()" },
+        "guest": { ".write": "!data.exists()" },
+        "created": { ".write": "!data.exists()" },
+        "start": { ".write": "newData.child('n').val() === 1 && !data.exists() || data.exists() && newData.child('n').val() === data.child('n').val() + 1" },
+        "presence": { "$role": { ".write": true, ".validate": "newData.isBoolean()" } },
+        "games": {
+          "$n": {
+            "$action": {
+              ".write": "!data.exists()",
+              ".validate": "newData.hasChildren(['p', 'type'])"
+            }
+          }
+        }
+      }
+    }
+  }
+}

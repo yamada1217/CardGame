@@ -1,12 +1,14 @@
 import { CARDS, COLORS, DECKS } from './cards.js';
 import { createGame, applyAction, def, checkPlay, targetsFor, canAttackWith, canBlockWith, power, levelSum } from './engine.js';
 import { cpuMainAction, cpuBlocks } from './ai.js';
+import { onlineAvailable, hostRoom, joinRoom, roomUrl, savedSession } from './online.js';
 
 const $app = document.getElementById('app');
 const $sheet = document.getElementById('sheet-root');
 const $toast = document.getElementById('toast');
 
-const ME = 0, CPU = 1;
+// 自分と相手の席。オンラインのゲストは 1 番になる
+let ME = 0, FOE = 1;
 const CPU_DELAY = 650;
 
 // UI の一時的な状態（ゲームの状態とは分ける）
@@ -22,7 +24,16 @@ const ui = {
   seen: new Set(),   // 登場アニメーション用
   logOpen: false,
   busy: false,
+  name: load('ijinden.name') || '',
+  online: null,      // オンライン対戦中の接続
+  joinCode: new URLSearchParams(location.search).get('room'),
+  waiting: null,     // { code } 相手待ち
+  foeOnline: true,
 };
+
+function load(k) { try { return localStorage.getItem(k); } catch { return null; } }
+function store(k, v) { try { localStorage.setItem(k, v); } catch { /* 保存できなくても続行 */ } }
+const myName = () => (ui.name.trim() || 'プレイヤー').slice(0, 12);
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -91,10 +102,13 @@ function manaChip(m) {
 
 function render() {
   if (ui.screen === 'title') return renderTitle();
+  if (ui.screen === 'waiting') return renderWaiting();
   renderGame();
 }
 
 function renderTitle() {
+  const canOnline = onlineAvailable();
+  const join = ui.joinCode;
   $app.innerHTML = `
     <main class="title">
       <div class="title-glow"></div>
@@ -104,6 +118,8 @@ function renderTitle() {
         <p class="sub">ONLINE</p>
       </div>
       <section class="deck-pick">
+        <h2>なまえ</h2>
+        <input class="name-input" id="name" maxlength="12" placeholder="プレイヤー" value="${esc(ui.name)}" autocomplete="nickname">
         <h2>デッキを選ぶ</h2>
         ${Object.entries(DECKS).map(([id, dk]) => `
           <button class="deck ${ui.myDeck === id ? 'on' : ''}" data-deck="${id}">
@@ -113,22 +129,124 @@ function renderTitle() {
           </button>`).join('')}
       </section>
       <div class="title-actions">
-        <button class="btn primary big" id="start-cpu">CPUと対戦</button>
-        <button class="btn ghost big" id="start-online" aria-disabled="true">オンライン対戦<small>準備中</small></button>
+        ${join ? `<button class="btn primary big" id="join">部屋 ${esc(join)} に参加</button>` : ''}
+        <button class="btn ${join ? 'ghost' : 'primary'} big" id="start-cpu">CPUと対戦</button>
+        ${join ? '' : `<button class="btn ghost big" id="start-online" ${canOnline ? '' : 'aria-disabled="true"'}>友達と対戦${canOnline ? '' : '<small>準備中</small>'}</button>`}
       </div>
       <p class="fine">カードは仮データです。ルールは公開されている解説をもとにしています。</p>
     </main>`;
+  const nameEl = document.getElementById('name');
+  nameEl.oninput = () => { ui.name = nameEl.value; store('ijinden.name', ui.name); };
   $app.querySelectorAll('[data-deck]').forEach((b) => b.onclick = () => { ui.myDeck = b.dataset.deck; vibrate(); renderTitle(); });
   document.getElementById('start-cpu').onclick = startCpuGame;
-  document.getElementById('start-online').onclick = () => toast('オンライン対戦は次のステップで追加します');
+  const on = document.getElementById('start-online');
+  if (on) on.onclick = () => (canOnline ? startHost() : toast('オンライン対戦はもうすぐ使えるようになります'));
+  const jb = document.getElementById('join');
+  if (jb) jb.onclick = () => startJoin(join);
+}
+
+function resetBoardUi() {
+  Object.assign(ui, { screen: 'game', mode: null, picks: [], blocks: {}, blocksPrev: {}, focusAtk: null, pending: null, seen: new Set(), logOpen: false });
+  closeSheet();
 }
 
 function startCpuGame() {
+  leaveOnline();
   const other = Object.keys(DECKS).find((k) => k !== ui.myDeck);
-  Object.assign(ui, { screen: 'game', mode: null, picks: [], blocks: {}, focusAtk: null, pending: null, seen: new Set(), logOpen: false });
-  ui.game = createGame({ names: ['あなた', 'CPU'], decks: [ui.myDeck, other] });
+  ME = 0; FOE = 1;
+  resetBoardUi();
+  ui.game = createGame({ names: [myName(), 'CPU'], decks: [ui.myDeck, other] });
   render();
   cpuLoop();
+}
+
+// ---------- オンライン ----------
+
+const onlineHandlers = {
+  onWaiting(code) { ui.screen = 'waiting'; ui.waiting = { code }; render(); },
+  onStart(start, me) {
+    ME = me; FOE = 1 - me;
+    resetBoardUi();
+    ui.waiting = null;
+    ui.game = createGame({ seed: start.seed, names: start.names, decks: start.decks, first: start.first });
+    ui.replaying = true;
+    render();
+    setTimeout(() => { ui.replaying = false; }, 0);
+  },
+  onAction(a) {
+    const { p, ...action } = a;
+    const before = ui.game;
+    const r = applyAction(ui.game, p, action);
+    if (!r.ok) return; // 両端末で同じように無視されるので、ずれない
+    ui.game = r.state;
+    if (!ui.replaying) announce(before, r.state);
+    afterChange();
+  },
+  onPresence(on) {
+    if (ui.foeOnline === on) return;
+    ui.foeOnline = on;
+    if (ui.screen === 'game') { toast(on ? '相手が戻ってきました' : '相手の接続が切れました'); render(); }
+  },
+};
+
+async function startHost() {
+  leaveOnline();
+  ui.screen = 'waiting'; ui.waiting = { code: null }; render();
+  try {
+    ui.online = await hostRoom({ name: myName(), deck: ui.myDeck }, onlineHandlers);
+  } catch (e) {
+    toast(`部屋を作れませんでした：${e.message}`);
+    ui.screen = 'title'; render();
+  }
+}
+
+async function startJoin(code) {
+  leaveOnline();
+  ui.screen = 'waiting'; ui.waiting = { code, joining: true }; render();
+  try {
+    ui.online = await joinRoom(code, { name: myName(), deck: ui.myDeck }, onlineHandlers);
+  } catch (e) {
+    toast(e.message);
+    ui.joinCode = null;
+    history.replaceState(null, '', roomUrl('').replace(/[?&]room=[^&]*/, '').replace(/\?$/, ''));
+    ui.screen = 'title'; render();
+  }
+}
+
+function leaveOnline() {
+  if (ui.online) ui.online.leave();
+  ui.online = null;
+  ui.foeOnline = true;
+}
+
+function renderWaiting() {
+  const code = ui.waiting?.code;
+  const url = code ? roomUrl(code) : '';
+  $app.innerHTML = `
+    <main class="title waiting">
+      <div class="title-glow"></div>
+      <div class="logo"><div class="logo-crest small">偉</div></div>
+      ${ui.waiting?.joining ? `<p class="wait-msg"><span class="spinner"></span>部屋に入っています…</p>` : code ? `
+        <section class="room">
+          <p class="room-label">部屋コード</p>
+          <p class="room-code">${esc(code)}</p>
+          <p class="room-help">このリンクを友達に送ってください。相手が開くと対戦が始まります。</p>
+          <div class="room-url">${esc(url)}</div>
+          <div class="title-actions">
+            ${navigator.share ? '<button class="btn primary big" id="share">リンクを送る</button>' : ''}
+            <button class="btn ${navigator.share ? 'ghost' : 'primary'} big" id="copy">リンクをコピー</button>
+          </div>
+        </section>
+        <p class="wait-msg"><span class="spinner"></span>相手を待っています</p>` : `<p class="wait-msg"><span class="spinner"></span>部屋を作っています…</p>`}
+      <button class="btn ghost" id="back">やめる</button>
+    </main>`;
+  document.getElementById('back').onclick = () => { leaveOnline(); ui.joinCode = null; ui.screen = 'title'; render(); };
+  const copy = document.getElementById('copy');
+  if (copy) copy.onclick = async () => {
+    try { await navigator.clipboard.writeText(url); toast('コピーしました'); } catch { toast(url); }
+  };
+  const share = document.getElementById('share');
+  if (share) share.onclick = () => navigator.share({ title: 'イジンデンで対戦しよう', text: `部屋コード ${code}`, url }).catch(() => {});
 }
 
 function phaseText(g) {
@@ -136,35 +254,35 @@ function phaseText(g) {
   if (g.phase === 'block') return g.turn === ME ? '相手がブロック中…' : 'ブロックを割り当てる';
   if (ui.mode === 'attack') return 'アタッカーを選ぶ';
   if (ui.mode === 'target') return '対象を選ぶ';
-  return g.turn === ME ? 'あなたのターン' : 'CPUのターン';
+  return g.turn === ME ? 'あなたのターン' : `${g.players[FOE].name}のターン`;
 }
 
 function renderGame() {
   const g = ui.game;
-  const me = g.players[ME], cpu = g.players[CPU];
+  const me = g.players[ME], cpu = g.players[FOE];
   const myTurn = g.turn === ME && g.phase === 'main';
   const atkSet = new Set(g.battle?.attackers || []);
   const assigned = new Map();
   Object.entries(ui.blocks).forEach(([a, list]) => list.forEach((b) => assigned.set(b, a)));
   const atkIndex = (uid) => [...atkSet].indexOf(uid) + 1;
-  const lastLogs = g.log.slice(-2).map((l) => `<div class="log-line ${l.p === CPU ? 'foe' : l.p === ME ? 'mine' : ''}">${esc(l.text)}</div>`).join('');
+  const lastLogs = g.log.slice(-2).map((l) => `<div class="log-line ${l.p === FOE ? 'foe' : l.p === ME ? 'mine' : ''}">${esc(l.text)}</div>`).join('');
 
   const fieldCard = (c, p) => {
     const d = def(c);
     let extra = '';
     let badge = '';
     if (p === ME && ui.mode === 'attack' && canAttackWith(g, ME, c)) extra += ui.picks.includes(c.uid) ? ' picked' : ' can';
-    if (p === CPU && atkSet.has(c.uid)) { extra += ' attacking'; badge = `<b class="badge atk">${atkIndex(c.uid)}</b>`; if (ui.focusAtk === c.uid) extra += ' focus'; }
+    if (p === FOE && atkSet.has(c.uid)) { extra += ' attacking'; badge = `<b class="badge atk">${atkIndex(c.uid)}</b>`; if (ui.focusAtk === c.uid) extra += ' focus'; }
     if (p === ME && atkSet.has(c.uid)) extra += ' attacking';
-    if (p === ME && g.phase === 'block' && g.turn === CPU && canBlockWith(c)) extra += ' can';
+    if (p === ME && g.phase === 'block' && g.turn === FOE && canBlockWith(c)) extra += ' can';
     if (assigned.has(c.uid)) { extra += ' blocking'; badge = `<b class="badge blk">${atkIndex(assigned.get(c.uid))}</b>`; }
-    if (p === CPU && ui.mode === 'target' && targetsFor(g, ME, def({ id: ui.pending.id })).includes(c.uid)) extra += ' can';
+    if (p === FOE && ui.mode === 'target' && targetsFor(g, ME, def({ id: ui.pending.id })).includes(c.uid)) extra += ' can';
     return `<div class="slot">${cardFace(c, { p, size: 's', role: atkSet.has(c.uid) ? 'atk' : null, extra })}${badge}</div>`;
   };
   const guardian = (c, p) => {
     let extra = c.tapped ? ' tapped' : '';
     let badge = '';
-    if (p === ME && g.phase === 'block' && g.turn === CPU && canBlockWith({ ...c, guardian: true })) extra += ' can';
+    if (p === ME && g.phase === 'block' && g.turn === FOE && canBlockWith({ ...c, guardian: true })) extra += ' can';
     if (assigned.has(c.uid)) { extra += ' blocking'; badge = `<b class="badge blk">${atkIndex(assigned.get(c.uid))}</b>`; }
     return `<div class="slot">${cardBack(c.uid, { size: 'g', extra: `guardian${extra}` })}${badge}</div>`;
   };
@@ -176,7 +294,7 @@ function renderGame() {
     <main class="game ${g.turn === ME ? 'my-turn' : 'foe-turn'} mode-${ui.mode || 'none'} phase-${g.phase}">
       <header class="bar foe">
         <button class="icon-btn" id="menu" aria-label="メニュー">☰</button>
-        <div class="who"><span class="avatar foe">C</span><span>${esc(cpu.name)}</span></div>
+        <div class="who"><span class="avatar foe">${esc(cpu.name[0] || '?')}</span>${ui.online && !ui.foeOnline ? '<span class="offline">切断中</span>' : ''}<span>${esc(cpu.name)}</span></div>
         <div class="counts">
           <span title="山札">山 ${cpu.deck.length}</span><span title="手札">手 ${cpu.hand.length}</span><span title="墓地" data-grave="1">墓 ${cpu.grave.length}</span>
         </div>
@@ -184,8 +302,8 @@ function renderGame() {
 
       <section class="side foe">
         <div class="mana-row">${cpu.mana.map(manaChip).join('')}<span class="lvsum">Lv ${levelSum(cpu)}</span></div>
-        <div class="row guardians">${cpu.guardians.map((c) => guardian(c, CPU)).join('') || '<span class="empty">ガーディアンなし</span>'}</div>
-        <div class="row field">${ijins(cpu).map((c) => fieldCard(c, CPU)).join('')}${haikeis(cpu).map((c) => fieldCard(c, CPU)).join('')}</div>
+        <div class="row guardians">${cpu.guardians.map((c) => guardian(c, FOE)).join('') || '<span class="empty">ガーディアンなし</span>'}</div>
+        <div class="row field">${ijins(cpu).map((c) => fieldCard(c, FOE)).join('')}${haikeis(cpu).map((c) => fieldCard(c, FOE)).join('')}</div>
       </section>
 
       <div class="center">
@@ -219,12 +337,13 @@ function renderGame() {
 
 function actionButtons(g) {
   if (g.phase === 'over') return `<button class="btn primary" data-act="again">もう一度</button><button class="btn ghost" data-act="title">タイトルへ</button>`;
-  if (g.phase === 'block' && g.turn === CPU) {
+  if (g.phase === 'block' && g.turn === FOE) {
     const missing = g.battle.attackers.filter((a) => !(ui.blocks[a] || []).length).length;
     return `<div class="hint">${ui.focusAtk ? '光っている自分のカードをタップしてブロッカーにする' : '相手のアタッカーをタップして選ぶ'}</div>
       <button class="btn danger" data-act="block">${missing ? `確定（未割当 ${missing}）` : 'ブロック確定'}</button>`;
   }
-  if (g.turn !== ME) return `<div class="hint wait"><span class="spinner"></span>CPUが考え中…</div>`;
+  if (g.phase === 'block') return `<div class="hint wait"><span class="spinner"></span>${ui.online ? '相手がブロックを選んでいます…' : 'CPUが考え中…'}</div>`;
+  if (g.turn !== ME) return `<div class="hint wait"><span class="spinner"></span>${ui.online ? '相手の番です…' : 'CPUが考え中…'}</div>`;
   if (ui.mode === 'attack') return `<button class="btn ghost" data-act="cancel">やめる</button><button class="btn danger" data-act="attack" ${ui.picks.length ? '' : 'disabled'}>アタック（${ui.picks.length}体）</button>`;
   if (ui.mode === 'target') return `<div class="hint">相手のイジンをタップ</div><button class="btn ghost" data-act="cancel">やめる</button>`;
   const canBattle = !g.battleUsed && g.players[ME].field.some((c) => canAttackWith(g, ME, c));
@@ -248,7 +367,7 @@ function bindGame() {
 function onBoardTap(el) {
   const g = ui.game, uid = el.dataset.uid;
   const mine = el.closest('.side').classList.contains('mine');
-  const pl = g.players[mine ? ME : CPU];
+  const pl = g.players[mine ? ME : FOE];
   const inst = pl.field.find((c) => c.uid === uid);
   const guard = pl.guardians.find((c) => c.uid === uid);
 
@@ -262,7 +381,7 @@ function onBoardTap(el) {
     ui.mode = null; ui.pending = null;
     return act({ type: 'play', uid: pend.uid, target: uid });
   }
-  if (g.phase === 'block' && g.turn === CPU) {
+  if (g.phase === 'block' && g.turn === FOE) {
     if (!mine && g.battle.attackers.includes(uid)) { ui.focusAtk = uid; vibrate(); return render(); }
     if (mine && ui.focusAtk && (guard || inst)) {
       const ok = guard ? canBlockWith({ ...guard, guardian: true }) : canBlockWith(inst);
@@ -278,7 +397,7 @@ function onBoardTap(el) {
     }
     if (mine && !ui.focusAtk) return toast('先に相手のアタッカーをタップ');
   }
-  if (inst) showCardDetail(inst, mine ? ME : CPU);
+  if (inst) showCardDetail(inst, mine ? ME : FOE);
   else if (guard) toast('ガーディアン：裏向きのカード。パワー0の壁として1回ブロックできる');
 }
 
@@ -296,18 +415,34 @@ async function onAction(a) {
     ui.blocks = {}; ui.blocksPrev = {}; ui.focusAtk = null;
     return act({ type: 'declareBlocks', blocks }, ME);
   }
-  if (a === 'again') return startCpuGame();
-  if (a === 'title') { ui.screen = 'title'; closeSheet(); return render(); }
+  if (a === 'again') {
+    if (!ui.online) return startCpuGame();
+    ui.online.rematch();
+    return toast('再戦を申し込みました');
+  }
+  if (a === 'title') { leaveOnline(); ui.joinCode = null; ui.screen = 'title'; closeSheet(); return render(); }
 }
 
 function act(action, p = ME) {
   const r = applyAction(ui.game, p, action);
   if (!r.ok) { toast(r.why); return render(); }
+  // オンラインでは送るだけ。自分の行動も届いた順に反映する
+  if (ui.online) { ui.online.send(action); return render(); }
   const before = ui.game;
   ui.game = r.state;
   announce(before, r.state);
+  afterChange();
+}
+
+function afterChange() {
+  const g = ui.game;
+  if (g.phase === 'block' && g.turn === FOE && !ui.focusAtk) {
+    ui.focusAtk = g.battle.attackers[0];
+    if (!ui.replaying) vibrate(40);
+  }
+  if (g.phase !== 'block') { ui.focusAtk = null; ui.blocks = {}; ui.blocksPrev = {}; }
   render();
-  cpuLoop();
+  if (!ui.online) cpuLoop();
 }
 
 // バトル結果などの大事なログをトーストで知らせる
@@ -318,27 +453,24 @@ function announce(before, after) {
 }
 
 async function cpuLoop() {
-  if (ui.busy) return;
+  if (ui.busy || ui.online) return;
   ui.busy = true;
   try {
     while (ui.game.phase !== 'over') {
       const g = ui.game;
       if (g.phase === 'block' && g.turn === ME) {
         await sleep(CPU_DELAY);
-        step(CPU, { type: 'declareBlocks', blocks: cpuBlocks(g, CPU) });
-      } else if (g.turn === CPU && g.phase === 'main') {
+        step(FOE, { type: 'declareBlocks', blocks: cpuBlocks(g, FOE) });
+      } else if (g.turn === FOE && g.phase === 'main') {
         await sleep(CPU_DELAY);
-        step(CPU, cpuMainAction(ui.game, CPU));
+        step(FOE, cpuMainAction(ui.game, FOE));
       } else break;
+      if (ui.screen !== 'game') break;
     }
   } finally {
     ui.busy = false;
   }
-  if (ui.game.phase === 'block' && ui.game.turn === CPU) {
-    ui.focusAtk = ui.game.battle.attackers[0];
-    vibrate(40);
-    render();
-  }
+  if (ui.game.phase === 'block' && ui.game.turn === FOE && !ui.focusAtk) afterChange();
 }
 
 function step(p, action) {
@@ -414,7 +546,7 @@ function showCardDetail(inst, p) {
 
 function showLog() {
   const g = ui.game;
-  openSheet(`<h3>ログ</h3><div class="log-list">${g.log.slice().reverse().map((l) => `<div class="log-line ${l.p === CPU ? 'foe' : l.p === ME ? 'mine' : ''}">${esc(l.text)}</div>`).join('')}</div>`, 'tall');
+  openSheet(`<h3>ログ</h3><div class="log-list">${g.log.slice().reverse().map((l) => `<div class="log-line ${l.p === FOE ? 'foe' : l.p === ME ? 'mine' : ''}">${esc(l.text)}</div>`).join('')}</div>`, 'tall');
 }
 
 function showGrave(p) {
@@ -428,7 +560,7 @@ function showMenu() {
     <button class="btn ghost" data-m="resign">降参してタイトルへ</button>
     <button class="btn ghost" data-m="close">閉じる</button></div>`);
   s.querySelector('[data-m="close"]').onclick = closeSheet;
-  s.querySelector('[data-m="resign"]').onclick = () => { closeSheet(); ui.screen = 'title'; render(); };
+  s.querySelector('[data-m="resign"]').onclick = () => { closeSheet(); leaveOnline(); ui.joinCode = null; ui.screen = 'title'; render(); };
   s.querySelector('[data-m="rules"]').onclick = showRules;
 }
 
@@ -466,4 +598,12 @@ function showGameOver() {
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
-render();
+// 自動テスト用の入口
+window.__ijinden = { ui, act, seat: () => ({ ME, FOE }) };
+
+// 対戦中に再読み込みしても、同じ部屋に戻る
+try {
+  const sess = savedSession();
+  if (ui.joinCode && sess?.code === ui.joinCode) startJoin(ui.joinCode);
+  else render();
+} catch { render(); }
