@@ -237,10 +237,14 @@ function tileHtml(c) {
     </button>`;
 }
 
-function deckListHtml() {
+function deckRows() {
   const rows = Object.entries(deck.cards).map(([id, k]) => ({ c: byId(id), k })).filter((r) => r.c);
+  return rows.sort((a, b) => TYPE_ORDER.indexOf(a.c.type) - TYPE_ORDER.indexOf(b.c.type) || a.c.level - b.c.level || a.c.id.localeCompare(b.c.id, 'en', { numeric: true }));
+}
+
+function deckListHtml() {
+  const rows = deckRows();
   if (!rows.length) return '<p class="b-empty">まだカードが入っていません。<br>「カード一覧」からタップして追加しましょう。</p>';
-  rows.sort((a, b) => TYPE_ORDER.indexOf(a.c.type) - TYPE_ORDER.indexOf(b.c.type) || a.c.level - b.c.level || a.c.id.localeCompare(b.c.id, 'en', { numeric: true }));
   let lastType = null;
   return rows.map(({ c, k }) => {
     const head = c.type !== lastType ? `<h4>${TYPE_LABEL[c.type]}</h4>` : '';
@@ -380,7 +384,8 @@ function afterCountChange(id, tileEl) {
 
 // ---------- 拡大表示・メニュー ----------
 
-function showCard(id) {
+// 拡大表示中に左右へスワイプすると、いま見ている一覧の隣のカードに切り替わる
+function showCard(id, from = 0) {
   const c = byId(id);
   if (!c) return;
   const n = () => deck.cards[id] || 0;
@@ -389,7 +394,34 @@ function showCard(id) {
     { label: '1枚減らす', disabled: !n(), onClick: () => { remove(id); showCard(id); } },
     { label: `1枚追加（いま${n()}枚）`, primary: true, disabled: n() >= copyLimit(c), onClick: () => { add(id); showCard(id); } },
   ] : [];
+  const ids = f.tab === 'list' ? catalog.filter(matches).map((x) => x.id) : deckRows().map((r) => r.c.id);
+  const i = ids.indexOf(id);
   zoomCard({ uid: `b-${id}`, id }, { card: c, note: ok ? '' : 'このカードは効果を準備中のため、まだ対戦では使えません。', actions });
+  const root = document.getElementById('zoom-root');
+  const body = root?.querySelector('.zoom-body');
+  if (!body || i < 0 || ids.length < 2) return;
+  body.insertAdjacentHTML('afterbegin', `<div class="zoom-pager"><span>‹</span>${i + 1} / ${ids.length}<span>›</span></div>`);
+  if (from) body.classList.add(from > 0 ? 'slide-next' : 'slide-prev');
+  const go = (d) => {
+    const j = i + d;
+    if (j < 0 || j >= ids.length) { body.classList.remove('edge'); void body.offsetWidth; body.classList.add('edge'); return; }
+    ctx.vibrate(8);
+    showCard(ids[j], d);
+  };
+  let sx = null, sy = 0;
+  // 背景をなぞっても切り替わるように、拡大表示全体で受ける（root は使い回されるので上書きで登録）
+  root.ontouchstart = (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; };
+  root.ontouchend = (e) => {
+    if (sx === null || !root.querySelector('.zoom-pager')) return; // 対戦画面の拡大表示では何もしない
+    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    sx = null;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { e.preventDefault(); go(dx < 0 ? 1 : -1); }
+  };
+  document.onkeydown = (e) => {
+    if (!root.classList.contains('open') || !root.querySelector('.zoom-pager')) { document.onkeydown = null; return; }
+    if (e.key === 'ArrowRight') go(1);
+    if (e.key === 'ArrowLeft') go(-1);
+  };
 }
 
 function rename() {
