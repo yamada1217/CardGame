@@ -1,0 +1,5588 @@
+{
+ "version": "0.1.0",
+ "updated": "2026-10-21",
+ "note": "textStatus=verified のカードだけが効果まで実装可能。missing は名前・数値のみ（効果文未取得）。第4〜6弾は未収録。詳細は RULES.md を参照。",
+ "sets": {
+  "R01": "スターター 伝説の武将デッキ (2023-07)",
+  "B01": "スターター 知と美の革命デッキ (2023-07)",
+  "G01": "スターター 日本の大天才デッキ (2023-07)",
+  "BP01": "第1弾ブースター",
+  "Y01": "スターター 三国の英傑デッキ (第2弾)",
+  "BP02": "第2弾ブースター",
+  "P01": "スターター 発展する医学デッキ (第3弾)",
+  "BP03": "第3弾ブースター"
+ },
+ "legacyAbilities": {
+  "draw1": "1ドローする。",
+  "manaize": "魔力化: これを裏にして魔力ゾーンに置く（マリョク配置権は使わない）。",
+  "restore": "復元: これを表向きで魔力ゾーンに置く（マリョク配置権は使わない）。",
+  "meifu": "冥府発動: このマホウを、色・レベル・魔力コストの条件を無視して使う（発動条件は必要）。",
+  "hangon": "反魂: 自分のガーディアン1体を山札の下に戻して、墓地のこのイジンを戦場に置く（召喚権は使わない）。",
+  "kodama": "木霊: 自分の手札か墓地から、これよりレベルの低いイジン1体を戦場に置く（召喚権は使わない）。",
+  "returnToHand": "これを手札に戻す。",
+  "returnToDeckTopOrBottom": "これを山札の上か下に戻す。"
+ },
+ "decks": [
+  {
+   "id": "R01",
+   "name": "伝説の武将デッキ",
+   "cards": [
+    {
+     "id": "R-1",
+     "count": 2
+    },
+    {
+     "id": "R-2",
+     "count": 2
+    },
+    {
+     "id": "R-3",
+     "count": 2
+    },
+    {
+     "id": "R-4",
+     "count": 2
+    },
+    {
+     "id": "R-5",
+     "count": 2
+    },
+    {
+     "id": "R-6",
+     "count": 2
+    },
+    {
+     "id": "R-7",
+     "count": 2
+    },
+    {
+     "id": "R-8",
+     "count": 2
+    },
+    {
+     "id": "R-9",
+     "count": 2
+    },
+    {
+     "id": "R-10",
+     "count": 2
+    },
+    {
+     "id": "R-11",
+     "count": 2
+    },
+    {
+     "id": "R-12",
+     "count": 2
+    },
+    {
+     "id": "R-13",
+     "count": 16
+    }
+   ]
+  },
+  {
+   "id": "B01",
+   "name": "知と美の革命デッキ",
+   "cards": [
+    {
+     "id": "B-1",
+     "count": 2
+    },
+    {
+     "id": "B-2",
+     "count": 2
+    },
+    {
+     "id": "B-3",
+     "count": 2
+    },
+    {
+     "id": "B-4",
+     "count": 2
+    },
+    {
+     "id": "B-5",
+     "count": 2
+    },
+    {
+     "id": "B-6",
+     "count": 2
+    },
+    {
+     "id": "B-7",
+     "count": 2
+    },
+    {
+     "id": "B-8",
+     "count": 2
+    },
+    {
+     "id": "B-9",
+     "count": 2
+    },
+    {
+     "id": "B-10",
+     "count": 2
+    },
+    {
+     "id": "B-11",
+     "count": 2
+    },
+    {
+     "id": "B-12",
+     "count": 2
+    },
+    {
+     "id": "B-13",
+     "count": 16
+    }
+   ]
+  },
+  {
+   "id": "G01",
+   "name": "日本の大天才デッキ",
+   "cards": [
+    {
+     "id": "G-1",
+     "count": 2
+    },
+    {
+     "id": "G-2",
+     "count": 2
+    },
+    {
+     "id": "G-3",
+     "count": 2
+    },
+    {
+     "id": "G-4",
+     "count": 2
+    },
+    {
+     "id": "G-5",
+     "count": 2
+    },
+    {
+     "id": "G-6",
+     "count": 2
+    },
+    {
+     "id": "G-7",
+     "count": 2
+    },
+    {
+     "id": "G-8",
+     "count": 2
+    },
+    {
+     "id": "G-9",
+     "count": 2
+    },
+    {
+     "id": "G-10",
+     "count": 2
+    },
+    {
+     "id": "G-11",
+     "count": 2
+    },
+    {
+     "id": "G-12",
+     "count": 2
+    },
+    {
+     "id": "G-13",
+     "count": 16
+    }
+   ]
+  }
+ ],
+ "cards": [
+  {
+   "id": "R-1",
+   "set": "R01",
+   "name": "上杉謙信",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 6,
+   "power": 6000,
+   "traits": [
+    "剣術"
+   ],
+   "legacy": null,
+   "keywords": [],
+   "text": "アタッカーになったとき、これのパワー以下のパワーを持つ相手の戦場のイジン1体を破壊する。",
+   "textStatus": "verified",
+   "notes": [
+    "必須。パワーは現在値（修正込み）で比較。"
+   ]
+  },
+  {
+   "id": "R-2",
+   "set": "R01",
+   "name": "源義経",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 1,
+   "power": 500,
+   "traits": [
+    "剣術"
+   ],
+   "legacy": "manaize",
+   "keywords": [
+    "即応"
+   ],
+   "text": "即応",
+   "textStatus": "verified"
+  },
+  {
+   "id": "R-3",
+   "set": "R01",
+   "name": "武田勝頼",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 2,
+   "power": 1000,
+   "traits": [
+    "剣術"
+   ],
+   "legacy": "draw1",
+   "keywords": [
+    "アタック+2000"
+   ],
+   "text": "アタック+2000",
+   "textStatus": "verified"
+  },
+  {
+   "id": "R-4",
+   "set": "R01",
+   "name": "ヴラド・ツェペシュ",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 3,
+   "power": 3000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": "アタッカーになったとき、自分の魔力ゾーンのマリョク1つを裏にして発動できる。パワー2000以下の相手の戦場のイジン1体を破壊する。",
+   "textStatus": "verified",
+   "notes": [
+    "任意。表向きマリョクが無ければ発動不可。"
+   ]
+  },
+  {
+   "id": "R-5",
+   "set": "R01",
+   "name": "坂上田村麻呂",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 4,
+   "power": 1000,
+   "traits": [
+    "剣術"
+   ],
+   "legacy": null,
+   "keywords": [
+    "ダブルプレッシャー"
+   ],
+   "text": "ダブルプレッシャー",
+   "textStatus": "verified"
+  },
+  {
+   "id": "R-6",
+   "set": "R01",
+   "name": "楠木正成",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 5,
+   "power": 5000,
+   "traits": [
+    "剣術"
+   ],
+   "legacy": null,
+   "keywords": [],
+   "text": "戦場に置かれたとき、イジン召喚権+1する。",
+   "textStatus": "verified",
+   "notes": [
+    "必須。"
+   ]
+  },
+  {
+   "id": "R-7",
+   "set": "R01",
+   "name": "ジェームズ・バトラー・ヒコック",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 5,
+   "power": 4000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [
+    "即応"
+   ],
+   "text": "即応　アタッカーになったとき、相手の戦場のハイケイ1つにつき1ドローする。",
+   "textStatus": "verified",
+   "notes": [
+    "必須。"
+   ]
+  },
+  {
+   "id": "R-8",
+   "set": "R01",
+   "name": "アレクサンドロス大王",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 6,
+   "power": 6000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [
+    "即応"
+   ],
+   "text": "即応　アタッカーになったとき、アタッカー1体につき相手の戦場のハイケイ1つを破壊する。",
+   "textStatus": "verified",
+   "notes": [
+    "必須。アタッカーが2体なら2つ破壊。"
+   ]
+  },
+  {
+   "id": "R-9",
+   "set": "R01",
+   "name": "神剣眠る氏社",
+   "rarity": "C",
+   "type": "haikei",
+   "colors": [
+    "red"
+   ],
+   "level": 2,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": "自分の戦場の赤のイジンが破壊されるたびに発動できる。そのイジン1体を裏にして魔力ゾーンに置く。",
+   "textStatus": "verified",
+   "notes": [
+    "任意。破壊された（まだ墓地に置かれていない）イジンを魔力ゾーンへ移す。"
+   ]
+  },
+  {
+   "id": "R-10",
+   "set": "R01",
+   "name": "連なる天守閣",
+   "rarity": "C",
+   "type": "haikei",
+   "colors": [
+    "red"
+   ],
+   "level": 3,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": "これのハイケイ使用に際し、自分の戦場に「剣術」イジンがいれば、これはレベル1になる。これが戦場にある間、自分の戦場のイジンは「パワー+1000」を得る。",
+   "textStatus": "verified",
+   "notes": [
+    "2枚あれば「パワー+2000」（累積）。"
+   ]
+  },
+  {
+   "id": "R-11",
+   "set": "R01",
+   "name": "ロイヤリティ",
+   "rarity": "C",
+   "type": "mahou",
+   "colors": [
+    "red"
+   ],
+   "level": 3,
+   "cost": 1,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": "自分の戦場の「剣術」イジン1体を破壊するか、自分の戦場のガーディアン1体を山札の上に戻す。3ドローする。",
+   "textStatus": "verified",
+   "notes": [
+    "どちらの対象もいなくても使用でき、3ドローは行う。"
+   ]
+  },
+  {
+   "id": "R-12",
+   "set": "R01",
+   "name": "デスペラード",
+   "rarity": "C",
+   "type": "mahou",
+   "colors": [
+    "red"
+   ],
+   "level": 3,
+   "cost": 1,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": "自分の戦場のイジン1体と相手の戦場のガーディアン1体を指定して発動できる。そのイジンとガーディアンを破壊する。",
+   "textStatus": "verified",
+   "notes": [
+    "自分のイジンがいなければ使用できない。"
+   ]
+  },
+  {
+   "id": "R-13",
+   "set": "R01",
+   "name": "レッドストーン",
+   "rarity": "C",
+   "type": "maryoku",
+   "colors": [
+    "red"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [
+    "枚数制限なし"
+   ],
+   "text": "デッキに何枚でも入れてよい。",
+   "textStatus": "verified"
+  },
+  {
+   "id": "B-1",
+   "set": "B01",
+   "name": "レオナルド・ダ・ヴィンチ",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 6,
+   "power": 5000,
+   "traits": [
+    "美術"
+   ],
+   "legacy": null,
+   "keywords": [],
+   "text": "戦場に置かれたとき、自分の墓地のレベル6以下のイジン1体か、自分の墓地のレベル5以下のハイケイ1つを指定して発動できる。そのイジンかハイケイを戦場に置く。",
+   "textStatus": "verified",
+   "notes": [
+    "置いたカードは色・レベル条件不要、召喚権も使わない。そのカードの「戦場に置かれたとき」も発動する。"
+   ]
+  },
+  {
+   "id": "B-2",
+   "set": "B01",
+   "name": "ヴァスコ・ダ・ガマ",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 1,
+   "power": 1000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [
+    "航海"
+   ],
+   "text": "航海-アタッカーになったとき、1ドローして、自分の手札1枚を墓地に置く。",
+   "textStatus": "verified",
+   "notes": [
+    "必須。"
+   ]
+  },
+  {
+   "id": "B-3",
+   "set": "B01",
+   "name": "好太王",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 2,
+   "power": 1000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [
+    "ブロッカーになれない"
+   ],
+   "text": "パワー1000以下のイジンにブロックされない。ブロッカーになれない。",
+   "textStatus": "verified",
+   "notes": [
+    "ガーディアンにはブロックされる。条件はブロッカー1体ごとに判定（合計ではない）。"
+   ]
+  },
+  {
+   "id": "B-4",
+   "set": "B01",
+   "name": "フェルディナンド・マゼラン",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 3,
+   "power": 3000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [
+    "航海"
+   ],
+   "text": "航海-アタッカーになったとき、相手の手札のカード1つを墓地に置く。そのカードは相手が選ぶ。",
+   "textStatus": "verified",
+   "notes": [
+    "必須。"
+   ]
+  },
+  {
+   "id": "B-5",
+   "set": "B01",
+   "name": "ラファエロ・サンティ",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 3,
+   "power": 3000,
+   "traits": [
+    "美術"
+   ],
+   "legacy": null,
+   "keywords": [],
+   "text": "戦場に置かれたとき、自分の墓地のイジン1体かハイケイ1つを手札に戻す。",
+   "textStatus": "verified",
+   "notes": [
+    "必須。"
+   ]
+  },
+  {
+   "id": "B-6",
+   "set": "B01",
+   "name": "ジャン・カルヴァン",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 2,
+   "power": 1000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": "メインフェイズが開始したとき、自分の魔力ゾーンのマリョク1つを裏にして発動できる。このターンの間「執筆」は発動しない。相手のターンの間「パワー+2000」を得る。",
+   "textStatus": "verified",
+   "notes": [
+    "相手のメインフェイズ開始時にも発動可。効果はこれが戦場を離れても継続。",
+    "【要確認】wiki本文に「パワー+1000」とする記述あり。カード画像表記の+2000を採用。"
+   ]
+  },
+  {
+   "id": "B-7",
+   "set": "B01",
+   "name": "武帝",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 3,
+   "power": 2000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": "自分の戦場のイジン1体につき「パワー+1000」を得る。パワー5000以上の間「ダブルプレッシャー」を得る。",
+   "textStatus": "verified",
+   "notes": [
+    "自身も数える。"
+   ]
+  },
+  {
+   "id": "B-8",
+   "set": "B01",
+   "name": "楊貴妃",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 5,
+   "power": 1000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": "戦場に置かれたとき、自分の戦場のイジン1体を破壊して発動できる。3ドローする。自分の手札が5枚以上の間「イジンにブロックされない」を得る。",
+   "textStatus": "verified",
+   "notes": [
+    "自身を破壊してもよい。ガーディアンにはブロックされる。"
+   ]
+  },
+  {
+   "id": "B-9",
+   "set": "B01",
+   "name": "モナ・リザ",
+   "rarity": "C",
+   "type": "haikei",
+   "colors": [
+    "blue"
+   ],
+   "level": 2,
+   "traits": [
+    "美術"
+   ],
+   "legacy": "returnToHand",
+   "keywords": [],
+   "text": "自分のメインフェイズが開始したとき、手札の「美術」カード1つを墓地に置いて発動できる。1ドローする。",
+   "textStatus": "verified"
+  },
+  {
+   "id": "B-10",
+   "set": "B01",
+   "name": "革命の広場",
+   "rarity": "C",
+   "type": "haikei",
+   "colors": [
+    "blue"
+   ],
+   "level": 3,
+   "traits": [],
+   "legacy": "returnToHand",
+   "keywords": [],
+   "text": "イジンが破壊されるたび、1ドローする。自分のメインフェイズが開始したとき、自分の戦場のイジン1体を指定して発動できる。そのイジンを破壊する。",
+   "textStatus": "verified",
+   "notes": [
+    "前半は必須で相手のイジンにも反応。"
+   ]
+  },
+  {
+   "id": "B-11",
+   "set": "B01",
+   "name": "フリート",
+   "rarity": "C",
+   "type": "mahou",
+   "colors": [
+    "blue"
+   ],
+   "level": 3,
+   "cost": 0,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": "このターンのバトル解決に際し、アタッカーは破壊されない。このターンの間「航海」を持つ戦場のイジンは「アタック+2000」を得る。",
+   "textStatus": "verified",
+   "notes": [
+    "能力による破壊は防げない。"
+   ]
+  },
+  {
+   "id": "B-12",
+   "set": "B01",
+   "name": "ドローイング",
+   "rarity": "C",
+   "type": "mahou",
+   "colors": [
+    "blue"
+   ],
+   "level": 3,
+   "cost": 1,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": "2ドローする。",
+   "textStatus": "verified"
+  },
+  {
+   "id": "B-13",
+   "set": "B01",
+   "name": "ブルーストーン",
+   "rarity": "C",
+   "type": "maryoku",
+   "colors": [
+    "blue"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [
+    "枚数制限なし"
+   ],
+   "text": "デッキに何枚でも入れてよい。",
+   "textStatus": "verified"
+  },
+  {
+   "id": "G-1",
+   "set": "G01",
+   "name": "出雲の阿国",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 5,
+   "power": 3000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": "戦場に置かれたとき、自分の戦場のカードすべてを起こす。破壊されたとき、自分の魔力ゾーンのマリョク1つを裏にして発動できる。これを破壊されていない状態にする。",
+   "textStatus": "verified",
+   "notes": [
+    "破壊されていない状態に戻った場合、遺業は発動しない。"
+   ]
+  },
+  {
+   "id": "G-2",
+   "set": "G01",
+   "name": "卑弥呼",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 1,
+   "power": 500,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": "戦場に置かれたとき、自分の山札の上から1枚を、裏のまま魔力ゾーンに置く。",
+   "textStatus": "verified",
+   "notes": [
+    "必須。"
+   ]
+  },
+  {
+   "id": "G-3",
+   "set": "G01",
+   "name": "アテルイ",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 3,
+   "power": 2000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [
+    "アタック+1000"
+   ],
+   "text": "「剣術」イジンが戦場に置かれたとき、これを起こす。アタック+1000",
+   "textStatus": "verified",
+   "notes": [
+    "相手の剣術イジンにも反応。"
+   ]
+  },
+  {
+   "id": "G-4",
+   "set": "G01",
+   "name": "紀貫之",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 2,
+   "power": 2000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [
+    "執筆"
+   ],
+   "text": "執筆-ハイケイが戦場に置かれたとき、これを裏にして魔力ゾーンに置く。",
+   "textStatus": "verified",
+   "notes": [
+    "相手のハイケイにも反応。必須。"
+   ]
+  },
+  {
+   "id": "G-5",
+   "set": "G01",
+   "name": "阿倍仲麻呂",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 4,
+   "power": 4000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": "「航海」が発動したとき、1ドローして、これを起こす。",
+   "textStatus": "verified",
+   "notes": [
+    "相手の航海にも反応。自身は航海を持たない。"
+   ]
+  },
+  {
+   "id": "G-6",
+   "set": "G01",
+   "name": "葛飾北斎",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 3,
+   "power": 2000,
+   "traits": [
+    "美術"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": "戦場に置かれたとき、自分の墓地のハイケイ1つか2つを指定して発動できる。それらのハイケイすべてを手札に戻す。",
+   "textStatus": "verified"
+  },
+  {
+   "id": "G-7",
+   "set": "G01",
+   "name": "藤原定家",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 4,
+   "power": 4000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [
+    "執筆"
+   ],
+   "text": "執筆-ハイケイが戦場に置かれたとき、自分の戦場のカードすべてを起こす。",
+   "textStatus": "verified",
+   "notes": [
+    "相手のハイケイにも反応。必須。"
+   ]
+  },
+  {
+   "id": "G-8",
+   "set": "G01",
+   "name": "最澄",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 8,
+   "power": 7000,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [
+    "航海"
+   ],
+   "text": "航海-アタッカーになったとき、自分の戦場のハイケイ1つを指定して発動できる。そのハイケイを手札に戻す。自分の戦場のイジンは、このターンの間「ダブルプレッシャー」を得る。",
+   "textStatus": "verified",
+   "notes": [
+    "自分のハイケイが無ければ発動不可。"
+   ]
+  },
+  {
+   "id": "G-9",
+   "set": "G01",
+   "name": "阿弥陀堂",
+   "rarity": "C",
+   "type": "haikei",
+   "colors": [
+    "green"
+   ],
+   "level": 4,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": "自分のメインフェイズが開始したとき、自分の戦場のカード1つか、自分の魔力ゾーンのカード1つを指定して発動できる。そのカードを手札に戻す。",
+   "textStatus": "verified"
+  },
+  {
+   "id": "G-10",
+   "set": "G01",
+   "name": "毘盧遮那仏像",
+   "rarity": "C",
+   "type": "haikei",
+   "colors": [
+    "green"
+   ],
+   "level": 6,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": "これが戦場にある間、自分の戦場のイジンは「パワー+1000」を得る。自分のエンドフェイズが開始したとき、自分の戦場のカードすべてを起こす。",
+   "textStatus": "verified"
+  },
+  {
+   "id": "G-11",
+   "set": "G01",
+   "name": "グロウ",
+   "rarity": "C",
+   "type": "mahou",
+   "colors": [
+    "green"
+   ],
+   "level": 3,
+   "cost": 0,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": "自分の山札の上から1枚を、裏のまま魔力ゾーンに置く。",
+   "textStatus": "verified"
+  },
+  {
+   "id": "G-12",
+   "set": "G01",
+   "name": "ギャザリング",
+   "rarity": "C",
+   "type": "mahou",
+   "colors": [
+    "green"
+   ],
+   "level": 5,
+   "cost": 1,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": "自分の戦場のガーディアンすべてを手札に戻す。自分の山札の上から2枚をガーディアンにして戦場に置く。",
+   "textStatus": "verified"
+  },
+  {
+   "id": "G-13",
+   "set": "G01",
+   "name": "グリーンストーン",
+   "rarity": "C",
+   "type": "maryoku",
+   "colors": [
+    "green"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [
+    "枚数制限なし"
+   ],
+   "text": "デッキに何枚でも入れてよい。",
+   "textStatus": "verified"
+  },
+  {
+   "id": "Y-1",
+   "set": "Y01",
+   "name": "諸葛亮",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 6,
+   "power": 4000,
+   "traits": [],
+   "legacy": "hangon",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "Y-2",
+   "set": "Y01",
+   "name": "今川義元",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 2,
+   "power": 1000,
+   "traits": [
+    "剣術"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "Y-3",
+   "set": "Y01",
+   "name": "周瑜",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 4,
+   "power": 3500,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "Y-4",
+   "set": "Y01",
+   "name": "孫権",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 5,
+   "power": 4500,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "Y-5",
+   "set": "Y01",
+   "name": "シャクシャイン",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 7,
+   "power": 5000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "Y-6",
+   "set": "Y01",
+   "name": "フビライ・ハン",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 6,
+   "power": 3000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "Y-7",
+   "set": "Y01",
+   "name": "足利義教",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 2,
+   "power": 2000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "Y-8",
+   "set": "Y01",
+   "name": "ヴィジェ＝ルブラン",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 1,
+   "power": 500,
+   "traits": [
+    "美術"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "Y-9",
+   "set": "Y01",
+   "name": "英傑集う大河",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "yellow"
+   ],
+   "level": 3,
+   "traits": [],
+   "legacy": "returnToDeckTopOrBottom",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "Y-10",
+   "set": "Y01",
+   "name": "地上の紫微垣",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "yellow"
+   ],
+   "level": 2,
+   "traits": [],
+   "legacy": "returnToDeckTopOrBottom",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "Y-11",
+   "set": "Y01",
+   "name": "ネハン",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "yellow"
+   ],
+   "level": 2,
+   "cost": 1,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "Y-12",
+   "set": "Y01",
+   "name": "レクイエム",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "yellow"
+   ],
+   "level": 1,
+   "cost": 1,
+   "traits": [],
+   "legacy": "returnToHand",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "Y-13",
+   "set": "Y01",
+   "name": "イエローストーン",
+   "rarity": "N",
+   "type": "maryoku",
+   "colors": [
+    "yellow"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "P-1",
+   "set": "P01",
+   "name": "マリ・キュリー",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 4,
+   "power": 4000,
+   "traits": [],
+   "legacy": "kodama",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "P-2",
+   "set": "P01",
+   "name": "篤姫",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 1,
+   "power": 1000,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "P-3",
+   "set": "P01",
+   "name": "李成桂",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 2,
+   "power": 1000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "P-4",
+   "set": "P01",
+   "name": "杉田玄白",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 4,
+   "power": 4000,
+   "traits": [
+    "医術"
+   ],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "P-5",
+   "set": "P01",
+   "name": "渡辺崋山",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 2,
+   "power": 500,
+   "traits": [
+    "美術"
+   ],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "P-6",
+   "set": "P01",
+   "name": "緒方洪庵",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 3,
+   "power": 2500,
+   "traits": [
+    "医術"
+   ],
+   "legacy": "kodama",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "P-7",
+   "set": "P01",
+   "name": "岡田以蔵",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 5,
+   "power": 2000,
+   "traits": [
+    "剣術"
+   ],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "P-8",
+   "set": "P01",
+   "name": "クララ・バートン",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 3,
+   "power": 3000,
+   "traits": [
+    "医術"
+   ],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "P-9",
+   "set": "P01",
+   "name": "虎狼痢",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "purple"
+   ],
+   "level": 6,
+   "traits": [],
+   "legacy": "returnToHand",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "P-10",
+   "set": "P01",
+   "name": "浪士集う長屋",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "purple"
+   ],
+   "level": 5,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "P-11",
+   "set": "P01",
+   "name": "スピリットアウェイ",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "purple"
+   ],
+   "level": 1,
+   "cost": 1,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "P-12",
+   "set": "P01",
+   "name": "タイムディレイション",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "purple"
+   ],
+   "level": 4,
+   "cost": 0,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "P-13",
+   "set": "P01",
+   "name": "ハンドミラー",
+   "rarity": "N",
+   "type": "maryoku",
+   "colors": [
+    "purple"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "P-14",
+   "set": "P01",
+   "name": "ブラックブレイド",
+   "rarity": "N",
+   "type": "maryoku",
+   "colors": [
+    "purple"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "P-15",
+   "set": "P01",
+   "name": "パープルオーブ",
+   "rarity": "N",
+   "type": "maryoku",
+   "colors": [
+    "purple"
+   ],
+   "level": 2,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "P-16",
+   "set": "P01",
+   "name": "パープルストーン",
+   "rarity": null,
+   "type": "maryoku",
+   "colors": [
+    "purple"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-1",
+   "set": "BP01",
+   "name": "織田信長",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 4,
+   "power": 5000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-2",
+   "set": "BP01",
+   "name": "クレオパトラ",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 5,
+   "power": 3000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-3",
+   "set": "BP01",
+   "name": "マルティン・ルター",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 3,
+   "power": 2000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-4",
+   "set": "BP01",
+   "name": "クリストファー・コロンブス",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 6,
+   "power": 3000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-5",
+   "set": "BP01",
+   "name": "ヴォルフガング・アマデウス・モーツァルト",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 7,
+   "power": 4000,
+   "traits": [
+    "音楽"
+   ],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-6",
+   "set": "BP01",
+   "name": "紫式部",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 8,
+   "power": 6000,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-7",
+   "set": "BP01",
+   "name": "マーサ・ジェーン・カナリー",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 1,
+   "power": 1000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-8",
+   "set": "BP01",
+   "name": "明智光秀",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 2,
+   "power": 3000,
+   "traits": [
+    "剣術"
+   ],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-9",
+   "set": "BP01",
+   "name": "藤原純友",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 2,
+   "power": 1000,
+   "traits": [
+    "剣術"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-10",
+   "set": "BP01",
+   "name": "徳川家康",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 3,
+   "power": 2000,
+   "traits": [
+    "剣術"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-11",
+   "set": "BP01",
+   "name": "直江兼続",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 3,
+   "power": 1000,
+   "traits": [
+    "剣術"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-12",
+   "set": "BP01",
+   "name": "藤原頼通",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 3,
+   "power": 3000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-13",
+   "set": "BP01",
+   "name": "北条政子",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 3,
+   "power": 2000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-14",
+   "set": "BP01",
+   "name": "ジョージ・アームストロング・カスター",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 4,
+   "power": 2000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-15",
+   "set": "BP01",
+   "name": "中臣鎌足",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 4,
+   "power": 4000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-16",
+   "set": "BP01",
+   "name": "マルクス・アントニウス",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 4,
+   "power": 1000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-17",
+   "set": "BP01",
+   "name": "藤原道長",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 5,
+   "power": 3000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-18",
+   "set": "BP01",
+   "name": "源頼朝",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 5,
+   "power": 5000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-19",
+   "set": "BP01",
+   "name": "ガイウス・ユリウス・カエサル",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 7,
+   "power": 6000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-20",
+   "set": "BP01",
+   "name": "ハンス・アクセル・フォン・フェルセン",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 1,
+   "power": 1000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-21",
+   "set": "BP01",
+   "name": "鑑真",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 2,
+   "power": 2000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-22",
+   "set": "BP01",
+   "name": "ジャンヌ・ダルク",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 2,
+   "power": 3000,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-23",
+   "set": "BP01",
+   "name": "ドナテッロ",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 2,
+   "power": 2000,
+   "traits": [
+    "美術"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-24",
+   "set": "BP01",
+   "name": "孔子",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 3,
+   "power": 1000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-25",
+   "set": "BP01",
+   "name": "始皇帝",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 5,
+   "power": 5000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-26",
+   "set": "BP01",
+   "name": "メアリー1世",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 3,
+   "power": 1000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-27",
+   "set": "BP01",
+   "name": "玄宗",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 4,
+   "power": 2000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-28",
+   "set": "BP01",
+   "name": "シャルル7世",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 4,
+   "power": 2000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-29",
+   "set": "BP01",
+   "name": "フランシスコ・ザビエル",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 4,
+   "power": 1000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-30",
+   "set": "BP01",
+   "name": "チンギス・ハン",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 5,
+   "power": 4000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-31",
+   "set": "BP01",
+   "name": "ミケランジェロ",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 5,
+   "power": 4000,
+   "traits": [
+    "美術"
+   ],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-32",
+   "set": "BP01",
+   "name": "マリー・アントワネット",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 6,
+   "power": 4000,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-33",
+   "set": "BP01",
+   "name": "千利休",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 1,
+   "power": 500,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-34",
+   "set": "BP01",
+   "name": "狩野永徳",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 2,
+   "power": 2000,
+   "traits": [
+    "美術"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-35",
+   "set": "BP01",
+   "name": "安倍晴明",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 3,
+   "power": 2000,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-36",
+   "set": "BP01",
+   "name": "吉田兼好",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 3,
+   "power": 2000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-37",
+   "set": "BP01",
+   "name": "蘆屋道満",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 4,
+   "power": 4000,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-38",
+   "set": "BP01",
+   "name": "鴨長明",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 4,
+   "power": 3000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-39",
+   "set": "BP01",
+   "name": "ヨハン・ゼバスティアン・バッハ",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 4,
+   "power": 4000,
+   "traits": [
+    "音楽"
+   ],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-40",
+   "set": "BP01",
+   "name": "大伴家持",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 5,
+   "power": 3000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-41",
+   "set": "BP01",
+   "name": "フランツ・ペーター・シューベルト",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 5,
+   "power": 4000,
+   "traits": [
+    "音楽"
+   ],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-42",
+   "set": "BP01",
+   "name": "空海",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 6,
+   "power": 5000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-43",
+   "set": "BP01",
+   "name": "清少納言",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 6,
+   "power": 3000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-44",
+   "set": "BP01",
+   "name": "ルートヴィヒ・ヴァン・ベートーヴェン",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 6,
+   "power": 4000,
+   "traits": [
+    "音楽"
+   ],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-45",
+   "set": "BP01",
+   "name": "行基",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 7,
+   "power": 3000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-46",
+   "set": "BP01",
+   "name": "武者の蔵",
+   "rarity": "C",
+   "type": "haikei",
+   "colors": [
+    "red"
+   ],
+   "level": 4,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-47",
+   "set": "BP01",
+   "name": "純白の塔",
+   "rarity": "C",
+   "type": "haikei",
+   "colors": [
+    "blue"
+   ],
+   "level": 4,
+   "traits": [],
+   "legacy": "returnToHand",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-48",
+   "set": "BP01",
+   "name": "円形闘技場",
+   "rarity": "C",
+   "type": "haikei",
+   "colors": [
+    "blue"
+   ],
+   "level": 5,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-49",
+   "set": "BP01",
+   "name": "巨大古墳",
+   "rarity": "C",
+   "type": "haikei",
+   "colors": [
+    "green"
+   ],
+   "level": 2,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-50",
+   "set": "BP01",
+   "name": "魔除けの社",
+   "rarity": "C",
+   "type": "haikei",
+   "colors": [
+    "green"
+   ],
+   "level": 3,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-51",
+   "set": "BP01",
+   "name": "冨嶽三十六景",
+   "rarity": "C",
+   "type": "haikei",
+   "colors": [
+    "green"
+   ],
+   "level": 5,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-52",
+   "set": "BP01",
+   "name": "バレット",
+   "rarity": "C",
+   "type": "mahou",
+   "colors": [
+    "red"
+   ],
+   "level": 3,
+   "cost": 0,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-53",
+   "set": "BP01",
+   "name": "チャンピオン",
+   "rarity": "R",
+   "type": "mahou",
+   "colors": [
+    "red"
+   ],
+   "level": 4,
+   "cost": 2,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-54",
+   "set": "BP01",
+   "name": "ファイナルアタック",
+   "rarity": "C",
+   "type": "mahou",
+   "colors": [
+    "red"
+   ],
+   "level": 6,
+   "cost": 3,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-55",
+   "set": "BP01",
+   "name": "ストーム",
+   "rarity": "C",
+   "type": "mahou",
+   "colors": [
+    "blue"
+   ],
+   "level": 2,
+   "cost": 1,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-56",
+   "set": "BP01",
+   "name": "リバイバル",
+   "rarity": "R",
+   "type": "mahou",
+   "colors": [
+    "blue"
+   ],
+   "level": 4,
+   "cost": 1,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-57",
+   "set": "BP01",
+   "name": "エイジング",
+   "rarity": "R",
+   "type": "mahou",
+   "colors": [
+    "green"
+   ],
+   "level": 4,
+   "cost": 2,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-58",
+   "set": "BP01",
+   "name": "カンテラ",
+   "rarity": "C",
+   "type": "maryoku",
+   "colors": [
+    "red"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-59",
+   "set": "BP01",
+   "name": "ファイアソード",
+   "rarity": "C",
+   "type": "maryoku",
+   "colors": [
+    "red"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-60",
+   "set": "BP01",
+   "name": "髭切",
+   "rarity": "C",
+   "type": "maryoku",
+   "colors": [
+    "red"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-61",
+   "set": "BP01",
+   "name": "レッドオーブ",
+   "rarity": "R",
+   "type": "maryoku",
+   "colors": [
+    "red"
+   ],
+   "level": 2,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-62",
+   "set": "BP01",
+   "name": "ウォーターポット",
+   "rarity": "C",
+   "type": "maryoku",
+   "colors": [
+    "blue"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-63",
+   "set": "BP01",
+   "name": "アイスソード",
+   "rarity": "C",
+   "type": "maryoku",
+   "colors": [
+    "blue"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-64",
+   "set": "BP01",
+   "name": "羅針盤",
+   "rarity": "C",
+   "type": "maryoku",
+   "colors": [
+    "blue"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-65",
+   "set": "BP01",
+   "name": "ブルーオーブ",
+   "rarity": "R",
+   "type": "maryoku",
+   "colors": [
+    "blue"
+   ],
+   "level": 2,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-66",
+   "set": "BP01",
+   "name": "ポプリ",
+   "rarity": "C",
+   "type": "maryoku",
+   "colors": [
+    "green"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-67",
+   "set": "BP01",
+   "name": "ウッドスタッフ",
+   "rarity": "C",
+   "type": "maryoku",
+   "colors": [
+    "green"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-68",
+   "set": "BP01",
+   "name": "万葉集",
+   "rarity": "C",
+   "type": "maryoku",
+   "colors": [
+    "green"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-69",
+   "set": "BP01",
+   "name": "グリーンオーブ",
+   "rarity": "R",
+   "type": "maryoku",
+   "colors": [
+    "green"
+   ],
+   "level": 2,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-70",
+   "set": "BP01",
+   "name": "ビスマルク",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 3,
+   "power": 3000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-71",
+   "set": "BP01",
+   "name": "ミュンツァー",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 1,
+   "power": 1000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-72",
+   "set": "BP01",
+   "name": "大江広元",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 2,
+   "power": 1000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-73",
+   "set": "BP01",
+   "name": "グスタフ2世アドルフ",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 4,
+   "power": 2000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-74",
+   "set": "BP01",
+   "name": "オリバー・クロムウェル",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 4,
+   "power": 3000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-75",
+   "set": "BP01",
+   "name": "衛青",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 4,
+   "power": 3000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-76",
+   "set": "BP01",
+   "name": "シーボルト",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 5,
+   "power": 4000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-77",
+   "set": "BP01",
+   "name": "乾隆帝",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 2,
+   "power": 3000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-78",
+   "set": "BP01",
+   "name": "小野好古",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 3,
+   "power": 2000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-79",
+   "set": "BP01",
+   "name": "アレッサンドロ・ヴァリニャーノ",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 5,
+   "power": 4000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "1-80",
+   "set": "BP01",
+   "name": "角倉了以",
+   "rarity": "C",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 6,
+   "power": 6000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-1",
+   "set": "BP02",
+   "name": "天草四郎",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 3,
+   "power": 3000,
+   "traits": [
+    "剣術"
+   ],
+   "legacy": "hangon",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-2",
+   "set": "BP02",
+   "name": "ピョートル大帝",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 5,
+   "power": 4000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-3",
+   "set": "BP02",
+   "name": "エイブラハム・リンカン",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 9,
+   "power": 8000,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-4",
+   "set": "BP02",
+   "name": "アイザック・ニュートン",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 8,
+   "power": 4000,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-5",
+   "set": "BP02",
+   "name": "親鸞",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 4,
+   "power": 2000,
+   "traits": [],
+   "legacy": "returnToDeckTopOrBottom",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-6",
+   "set": "BP02",
+   "name": "ナポレオン・ボナパルト",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 7,
+   "power": 5000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-7",
+   "set": "BP02",
+   "name": "日野富子",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 2,
+   "power": 500,
+   "traits": [],
+   "legacy": "hangon",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-8",
+   "set": "BP02",
+   "name": "豊臣秀吉",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 10,
+   "power": 10000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-9",
+   "set": "BP02",
+   "name": "石田三成",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 5,
+   "power": 3000,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-10",
+   "set": "BP02",
+   "name": "栄西",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 1,
+   "power": 500,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-11",
+   "set": "BP02",
+   "name": "道元",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 3,
+   "power": 2000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-12",
+   "set": "BP02",
+   "name": "足利義昭",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 9,
+   "power": 1000,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-13",
+   "set": "BP02",
+   "name": "毛利輝元",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 6,
+   "power": 7000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-14",
+   "set": "BP02",
+   "name": "北条時政",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 5,
+   "power": 1000,
+   "traits": [
+    "剣術"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-15",
+   "set": "BP02",
+   "name": "北条時宗",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 7,
+   "power": 7000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-16",
+   "set": "BP02",
+   "name": "シャルル・ド・モンテスキュー",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 2,
+   "power": 1000,
+   "traits": [
+    "思想"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-17",
+   "set": "BP02",
+   "name": "ジャン＝ジャック・ルソー",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 3,
+   "power": 1000,
+   "traits": [
+    "思想"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-18",
+   "set": "BP02",
+   "name": "エカチェリーナ2世",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 2,
+   "power": 500,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-19",
+   "set": "BP02",
+   "name": "ジョン・ロック",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 1,
+   "power": 500,
+   "traits": [
+    "思想"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-20",
+   "set": "BP02",
+   "name": "洪秀全",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 2,
+   "power": 500,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-21",
+   "set": "BP02",
+   "name": "ジェームズ＝ワット",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 3,
+   "power": 500,
+   "traits": [],
+   "legacy": "hangon",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-22",
+   "set": "BP02",
+   "name": "日蓮",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 4,
+   "power": 3000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-23",
+   "set": "BP02",
+   "name": "李舜臣",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 7,
+   "power": 7000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-24",
+   "set": "BP02",
+   "name": "山田長政",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 5,
+   "power": 4000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-25",
+   "set": "BP02",
+   "name": "運慶",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 6,
+   "power": 5000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-26",
+   "set": "BP02",
+   "name": "ハリエット・ビーチャー・ストウ",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 2,
+   "power": 1000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-27",
+   "set": "BP02",
+   "name": "コシャマイン",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 3,
+   "power": 2000,
+   "traits": [],
+   "legacy": "hangon",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-28",
+   "set": "BP02",
+   "name": "狩野山楽",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 7,
+   "power": 5000,
+   "traits": [
+    "美術"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-29",
+   "set": "BP02",
+   "name": "徳川家光",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 4,
+   "power": 1000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-30",
+   "set": "BP02",
+   "name": "徳川綱吉",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 5,
+   "power": 1000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-31",
+   "set": "BP02",
+   "name": "東洲斎写楽",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 8,
+   "power": 7000,
+   "traits": [
+    "美術"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-32",
+   "set": "BP02",
+   "name": "曹操",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 4,
+   "power": 3000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-33",
+   "set": "BP02",
+   "name": "張角",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 2,
+   "power": 1000,
+   "traits": [],
+   "legacy": "hangon",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-34",
+   "set": "BP02",
+   "name": "劉備",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 3,
+   "power": 2000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-35",
+   "set": "BP02",
+   "name": "司馬懿",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 5,
+   "power": 4000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-36",
+   "set": "BP02",
+   "name": "足利義政",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 7,
+   "power": 6000,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-37",
+   "set": "BP02",
+   "name": "姜維",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 9,
+   "power": 7000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-38",
+   "set": "BP02",
+   "name": "裴松之",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 8,
+   "power": 6000,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-39",
+   "set": "BP02",
+   "name": "陳寿",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 1,
+   "power": 500,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-40",
+   "set": "BP02",
+   "name": "足利尊氏",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 1,
+   "power": 1000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-41",
+   "set": "BP02",
+   "name": "カール・マルクス",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 1,
+   "power": 500,
+   "traits": [],
+   "legacy": "hangon",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-42",
+   "set": "BP02",
+   "name": "足利義満",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 3,
+   "power": 2000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-43",
+   "set": "BP02",
+   "name": "観阿弥",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 3,
+   "power": 2000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-44",
+   "set": "BP02",
+   "name": "世阿弥",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 4,
+   "power": 2000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-45",
+   "set": "BP02",
+   "name": "新井白石",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 2,
+   "power": 1000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-46",
+   "set": "BP02",
+   "name": "孫夫人",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 4,
+   "power": 1000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-47",
+   "set": "BP02",
+   "name": "法然",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 3,
+   "power": 2000,
+   "traits": [],
+   "legacy": "returnToDeckTopOrBottom",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-48",
+   "set": "BP02",
+   "name": "一遍",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 5,
+   "power": 5000,
+   "traits": [],
+   "legacy": "returnToDeckTopOrBottom",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-49",
+   "set": "BP02",
+   "name": "籠城戦",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "red"
+   ],
+   "level": 2,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-50",
+   "set": "BP02",
+   "name": "安宅船",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "red"
+   ],
+   "level": 5,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-51",
+   "set": "BP02",
+   "name": "リヴァイアサン",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "blue"
+   ],
+   "level": 4,
+   "traits": [],
+   "legacy": "returnToHand",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-52",
+   "set": "BP02",
+   "name": "ガレオン船",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "blue"
+   ],
+   "level": 6,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-53",
+   "set": "BP02",
+   "name": "仁王",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "green"
+   ],
+   "level": 2,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-54",
+   "set": "BP02",
+   "name": "蒸気機関車",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "green"
+   ],
+   "level": 7,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-55",
+   "set": "BP02",
+   "name": "凱旋門",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "yellow"
+   ],
+   "level": 2,
+   "traits": [],
+   "legacy": "returnToDeckTopOrBottom",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-56",
+   "set": "BP02",
+   "name": "三層の舎利殿",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "yellow"
+   ],
+   "level": 3,
+   "traits": [],
+   "legacy": "returnToDeckTopOrBottom",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-57",
+   "set": "BP02",
+   "name": "スペクター",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "red"
+   ],
+   "level": 7,
+   "cost": 1,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-58",
+   "set": "BP02",
+   "name": "クイック",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "red"
+   ],
+   "level": 2,
+   "cost": 1,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-59",
+   "set": "BP02",
+   "name": "サモン",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "red"
+   ],
+   "level": 3,
+   "cost": 1,
+   "traits": [],
+   "legacy": "returnToHand",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-60",
+   "set": "BP02",
+   "name": "フェイス",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "blue"
+   ],
+   "level": 2,
+   "cost": 1,
+   "traits": [],
+   "legacy": "returnToHand",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-61",
+   "set": "BP02",
+   "name": "リドロー",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "blue"
+   ],
+   "level": 2,
+   "cost": 1,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-62",
+   "set": "BP02",
+   "name": "テンペスト",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "blue"
+   ],
+   "level": 4,
+   "cost": 1,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-63",
+   "set": "BP02",
+   "name": "ミューテイション",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "green"
+   ],
+   "level": 4,
+   "cost": 2,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-64",
+   "set": "BP02",
+   "name": "ライブラリー",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "green"
+   ],
+   "level": 5,
+   "cost": 2,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-65",
+   "set": "BP02",
+   "name": "チャージ",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "green"
+   ],
+   "level": 1,
+   "cost": 1,
+   "traits": [],
+   "legacy": "returnToHand",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-66",
+   "set": "BP02",
+   "name": "カタストロフィ",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "yellow"
+   ],
+   "level": 5,
+   "cost": 2,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-67",
+   "set": "BP02",
+   "name": "エクスキューション",
+   "rarity": "R",
+   "type": "mahou",
+   "colors": [
+    "yellow"
+   ],
+   "level": 3,
+   "cost": 1,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-68",
+   "set": "BP02",
+   "name": "メロウ",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "yellow"
+   ],
+   "level": 4,
+   "cost": 1,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-69",
+   "set": "BP02",
+   "name": "スカーレット",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "yellow"
+   ],
+   "level": 3,
+   "cost": 1,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-70",
+   "set": "BP02",
+   "name": "ピーコック",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "yellow"
+   ],
+   "level": 3,
+   "cost": 1,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-71",
+   "set": "BP02",
+   "name": "シャトルーズ",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "yellow"
+   ],
+   "level": 3,
+   "cost": 1,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-72",
+   "set": "BP02",
+   "name": "サンドグラス",
+   "rarity": "N",
+   "type": "maryoku",
+   "colors": [
+    "yellow"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-73",
+   "set": "BP02",
+   "name": "シルククローク",
+   "rarity": "N",
+   "type": "maryoku",
+   "colors": [
+    "yellow"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-74",
+   "set": "BP02",
+   "name": "イエローオーブ",
+   "rarity": "R",
+   "type": "maryoku",
+   "colors": [
+    "yellow"
+   ],
+   "level": 2,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-75",
+   "set": "BP02",
+   "name": "RYマーブルストーン",
+   "rarity": "N",
+   "type": "maryoku",
+   "colors": [
+    "red",
+    "yellow"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-76",
+   "set": "BP02",
+   "name": "BYマーブルストーン",
+   "rarity": "N",
+   "type": "maryoku",
+   "colors": [
+    "blue",
+    "yellow"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-77",
+   "set": "BP02",
+   "name": "GYマーブルストーン",
+   "rarity": "N",
+   "type": "maryoku",
+   "colors": [
+    "green",
+    "yellow"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-78",
+   "set": "BP02",
+   "name": "RYマーブルオーブ",
+   "rarity": "R",
+   "type": "maryoku",
+   "colors": [
+    "red",
+    "yellow"
+   ],
+   "level": 2,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-79",
+   "set": "BP02",
+   "name": "BYマーブルオーブ",
+   "rarity": "R",
+   "type": "maryoku",
+   "colors": [
+    "blue",
+    "yellow"
+   ],
+   "level": 2,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "2-80",
+   "set": "BP02",
+   "name": "GYマーブルオーブ",
+   "rarity": "R",
+   "type": "maryoku",
+   "colors": [
+    "green",
+    "yellow"
+   ],
+   "level": 2,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-1",
+   "set": "BP03",
+   "name": "宮本武蔵",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 5,
+   "power": 4000,
+   "traits": [
+    "剣術"
+   ],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-2",
+   "set": "BP03",
+   "name": "エリザベス1世",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 4,
+   "power": 2000,
+   "traits": [],
+   "legacy": "hangon",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-3",
+   "set": "BP03",
+   "name": "エンリケ航海王子",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 7,
+   "power": 5000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-4",
+   "set": "BP03",
+   "name": "吉田松陰",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 5,
+   "power": 2000,
+   "traits": [
+    "思想"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-5",
+   "set": "BP03",
+   "name": "徳川光圀",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 5,
+   "power": 4000,
+   "traits": [],
+   "legacy": "kodama",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-6",
+   "set": "BP03",
+   "name": "葛飾応為",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 7,
+   "power": 6000,
+   "traits": [
+    "美術"
+   ],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-7",
+   "set": "BP03",
+   "name": "曹丕",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 5,
+   "power": 4000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-8",
+   "set": "BP03",
+   "name": "ジェーン・オースティン",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 8,
+   "power": 4000,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-9",
+   "set": "BP03",
+   "name": "土方歳三",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 6,
+   "power": 5000,
+   "traits": [
+    "志願"
+   ],
+   "legacy": "returnToDeckTopOrBottom",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-10",
+   "set": "BP03",
+   "name": "武則天",
+   "rarity": "SR",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 2,
+   "power": 1500,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-11",
+   "set": "BP03",
+   "name": "ウィリアム・セシル",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 4,
+   "power": 1000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-12",
+   "set": "BP03",
+   "name": "イーライ・ホイットニー",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 3,
+   "power": 2000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-13",
+   "set": "BP03",
+   "name": "平賀源内",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 2,
+   "power": 1000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-14",
+   "set": "BP03",
+   "name": "ジョージ・スチーブンソン",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 3,
+   "power": 3000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-15",
+   "set": "BP03",
+   "name": "淀殿",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 5,
+   "power": 4000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-16",
+   "set": "BP03",
+   "name": "ジョージ・ワシントン",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 1,
+   "power": 500,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-17",
+   "set": "BP03",
+   "name": "大塩平八郎",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 8,
+   "power": 8000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-18",
+   "set": "BP03",
+   "name": "水野忠邦",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "red"
+   ],
+   "level": 6,
+   "power": 5000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-19",
+   "set": "BP03",
+   "name": "伊達政宗",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 8,
+   "power": 8000,
+   "traits": [
+    "剣術"
+   ],
+   "legacy": "hangon",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-20",
+   "set": "BP03",
+   "name": "バルトロメウ＝ディアス",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 6,
+   "power": 3000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-21",
+   "set": "BP03",
+   "name": "木戸孝允",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 1,
+   "power": 1000,
+   "traits": [
+    "思想"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-22",
+   "set": "BP03",
+   "name": "高杉晋作",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 2,
+   "power": 2000,
+   "traits": [
+    "思想"
+   ],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-23",
+   "set": "BP03",
+   "name": "トマス・ニューコメン",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 4,
+   "power": 2000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-24",
+   "set": "BP03",
+   "name": "アダム・ラクスマン",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 5,
+   "power": 3000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-25",
+   "set": "BP03",
+   "name": "大黒屋光太夫",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 2,
+   "power": 2000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-26",
+   "set": "BP03",
+   "name": "ニコライ・レザノフ",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "blue"
+   ],
+   "level": 1,
+   "power": 1000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-27",
+   "set": "BP03",
+   "name": "小野小町",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 3,
+   "power": 1000,
+   "traits": [],
+   "legacy": "kodama",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-28",
+   "set": "BP03",
+   "name": "松尾芭蕉",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 3,
+   "power": 1000,
+   "traits": [],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-29",
+   "set": "BP03",
+   "name": "朱舜水",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 4,
+   "power": 3000,
+   "traits": [],
+   "legacy": "kodama",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-30",
+   "set": "BP03",
+   "name": "井原西鶴",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 2,
+   "power": 1000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-31",
+   "set": "BP03",
+   "name": "近松門左衛門",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 9,
+   "power": 7000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-32",
+   "set": "BP03",
+   "name": "田沼意次",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 1,
+   "power": 1000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-33",
+   "set": "BP03",
+   "name": "高野長英",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 2,
+   "power": 2000,
+   "traits": [
+    "医術"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-34",
+   "set": "BP03",
+   "name": "菱川師宣",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "green"
+   ],
+   "level": 6,
+   "power": 5000,
+   "traits": [
+    "美術"
+   ],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-35",
+   "set": "BP03",
+   "name": "徳川吉宗",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 5,
+   "power": 1000,
+   "traits": [],
+   "legacy": "hangon",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-36",
+   "set": "BP03",
+   "name": "雪舟",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 1,
+   "power": 500,
+   "traits": [
+    "美術"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-37",
+   "set": "BP03",
+   "name": "俵屋宗達",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 6,
+   "power": 5500,
+   "traits": [
+    "美術"
+   ],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-38",
+   "set": "BP03",
+   "name": "司馬炎",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 9,
+   "power": 3000,
+   "traits": [],
+   "legacy": "hangon",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-39",
+   "set": "BP03",
+   "name": "井伊直弼",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 8,
+   "power": 7000,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-40",
+   "set": "BP03",
+   "name": "徳川家茂",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 3,
+   "power": 2500,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-41",
+   "set": "BP03",
+   "name": "松平定信",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 7,
+   "power": 6000,
+   "traits": [],
+   "legacy": "returnToDeckTopOrBottom",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-42",
+   "set": "BP03",
+   "name": "ルイス・キャロル",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "yellow"
+   ],
+   "level": 2,
+   "power": 500,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-43",
+   "set": "BP03",
+   "name": "芹沢鴨",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 1,
+   "power": 500,
+   "traits": [
+    "志願"
+   ],
+   "legacy": "draw1",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-44",
+   "set": "BP03",
+   "name": "本居宣長",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 4,
+   "power": 3500,
+   "traits": [
+    "医術"
+   ],
+   "legacy": "kodama",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-45",
+   "set": "BP03",
+   "name": "坂本龍馬",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 3,
+   "power": 3000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-46",
+   "set": "BP03",
+   "name": "近藤勇",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 7,
+   "power": 2000,
+   "traits": [
+    "志願"
+   ],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-47",
+   "set": "BP03",
+   "name": "徳川慶喜",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 1,
+   "power": 1000,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-48",
+   "set": "BP03",
+   "name": "マシュー・カルブレイス・ペリー",
+   "rarity": "R",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 4,
+   "power": 3500,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-49",
+   "set": "BP03",
+   "name": "タウンゼント・ハリス",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 8,
+   "power": 7500,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-50",
+   "set": "BP03",
+   "name": "勝海舟",
+   "rarity": "N",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 3,
+   "power": 2000,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-51",
+   "set": "BP03",
+   "name": "炎上がる天守閣",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "red"
+   ],
+   "level": 3,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-52",
+   "set": "BP03",
+   "name": "天下分け目の主戦場",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "red"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-53",
+   "set": "BP03",
+   "name": "永遠の帝都",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "blue"
+   ],
+   "level": 4,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-54",
+   "set": "BP03",
+   "name": "暴風岬",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "blue"
+   ],
+   "level": 5,
+   "traits": [],
+   "legacy": "returnToHand",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-55",
+   "set": "BP03",
+   "name": "商館並ぶ人工島",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "green"
+   ],
+   "level": 3,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-56",
+   "set": "BP03",
+   "name": "志士の藩校",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "green"
+   ],
+   "level": 5,
+   "traits": [],
+   "legacy": "kodama",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-57",
+   "set": "BP03",
+   "name": "風神雷神図",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "yellow"
+   ],
+   "level": 4,
+   "traits": [],
+   "legacy": "returnToDeckTopOrBottom",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-58",
+   "set": "BP03",
+   "name": "茅葺き屋根の張出し舞台",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "yellow"
+   ],
+   "level": 3,
+   "traits": [],
+   "legacy": "returnToDeckTopOrBottom",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-59",
+   "set": "BP03",
+   "name": "森閑たる離宮",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "purple"
+   ],
+   "level": 2,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-60",
+   "set": "BP03",
+   "name": "黒船",
+   "rarity": "N",
+   "type": "haikei",
+   "colors": [
+    "purple"
+   ],
+   "level": 6,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-61",
+   "set": "BP03",
+   "name": "サンダーボルト",
+   "rarity": "R",
+   "type": "mahou",
+   "colors": [
+    "red"
+   ],
+   "level": 6,
+   "cost": 3,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-62",
+   "set": "BP03",
+   "name": "パイロオーラ",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "red"
+   ],
+   "level": 2,
+   "cost": 1,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-63",
+   "set": "BP03",
+   "name": "アイオン",
+   "rarity": "R",
+   "type": "mahou",
+   "colors": [
+    "blue"
+   ],
+   "level": 10,
+   "cost": 0,
+   "traits": [],
+   "legacy": "returnToHand",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-64",
+   "set": "BP03",
+   "name": "ハイドロオーラ",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "blue"
+   ],
+   "level": 2,
+   "cost": 1,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-65",
+   "set": "BP03",
+   "name": "ソーサリー",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "green"
+   ],
+   "level": 5,
+   "cost": 0,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-66",
+   "set": "BP03",
+   "name": "クロロオーラ",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "green"
+   ],
+   "level": 2,
+   "cost": 1,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-67",
+   "set": "BP03",
+   "name": "パシフィック",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "yellow"
+   ],
+   "level": 2,
+   "cost": 0,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-68",
+   "set": "BP03",
+   "name": "ジオオーラ",
+   "rarity": "R",
+   "type": "mahou",
+   "colors": [
+    "yellow"
+   ],
+   "level": 2,
+   "cost": 1,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-69",
+   "set": "BP03",
+   "name": "コーザリティ",
+   "rarity": "N",
+   "type": "mahou",
+   "colors": [
+    "purple"
+   ],
+   "level": 3,
+   "cost": 0,
+   "traits": [],
+   "legacy": "meifu",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-70",
+   "set": "BP03",
+   "name": "エアロオーラ",
+   "rarity": "R",
+   "type": "mahou",
+   "colors": [
+    "purple"
+   ],
+   "level": 2,
+   "cost": 1,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-71",
+   "set": "BP03",
+   "name": "喜びの種",
+   "rarity": "N",
+   "type": "maryoku",
+   "colors": [
+    "red"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-72",
+   "set": "BP03",
+   "name": "怖れの種",
+   "rarity": "N",
+   "type": "maryoku",
+   "colors": [
+    "blue"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-73",
+   "set": "BP03",
+   "name": "怒りの種",
+   "rarity": "N",
+   "type": "maryoku",
+   "colors": [
+    "green"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-74",
+   "set": "BP03",
+   "name": "苦しみの種",
+   "rarity": "N",
+   "type": "maryoku",
+   "colors": [
+    "yellow"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-75",
+   "set": "BP03",
+   "name": "悲しみの種",
+   "rarity": "N",
+   "type": "maryoku",
+   "colors": [
+    "purple"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-76",
+   "set": "BP03",
+   "name": "ダンダラ羽織",
+   "rarity": "N",
+   "type": "maryoku",
+   "colors": [
+    "purple"
+   ],
+   "level": 1,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-77",
+   "set": "BP03",
+   "name": "遁甲盤",
+   "rarity": "N",
+   "type": "maryoku",
+   "colors": [],
+   "level": 0,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-78",
+   "set": "BP03",
+   "name": "ホムンクルス",
+   "rarity": "N",
+   "type": "maryoku",
+   "colors": [],
+   "level": 1,
+   "traits": [],
+   "legacy": null,
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-79",
+   "set": "BP03",
+   "name": "ストーンマスク",
+   "rarity": "N",
+   "type": "maryoku",
+   "colors": [],
+   "level": 1,
+   "traits": [],
+   "legacy": "restore",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-80",
+   "set": "BP03",
+   "name": "オブシディアン",
+   "rarity": "R",
+   "type": "maryoku",
+   "colors": [],
+   "level": 3,
+   "traits": [],
+   "legacy": "manaize",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  },
+  {
+   "id": "3-81",
+   "set": "BP03",
+   "name": "土方歳三",
+   "rarity": "PSR",
+   "type": "ijin",
+   "colors": [
+    "purple"
+   ],
+   "level": 6,
+   "power": 5000,
+   "traits": [
+    "志願"
+   ],
+   "legacy": "returnToDeckTopOrBottom",
+   "keywords": [],
+   "text": null,
+   "textStatus": "missing"
+  }
+ ]
+}
