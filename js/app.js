@@ -4,6 +4,7 @@ import { cpuAction } from './ai.js';
 import { cardFace as viewCardFace, cardBack, esc } from './cardview.js';
 import { zoomCard, closeZoom } from './zoom.js';
 import { planFx, runFx } from './fx.js';
+import { sfx, isMuted, setMuted, unlockAudio } from './sfx.js';
 import { onlineAvailable, hostRoom, joinRoom, roomUrl, savedSession } from './online.js';
 import { usableDecks, deckForMatch, sanitizeDeck, deckColors } from './decks.js';
 import { openDeckList } from './builder.js';
@@ -85,6 +86,7 @@ function renderTitle() {
   $app.innerHTML = `
     <main class="title">
       <div class="title-glow"></div>
+      <button class="icon-btn sound-btn" id="sound" aria-label="効果音">${isMuted() ? '🔇' : '🔊'}</button>
       <div class="logo">
         <div class="logo-crest">偉</div>
         <h1>イジンデン</h1>
@@ -104,6 +106,7 @@ function renderTitle() {
     </main>`;
   const nameEl = document.getElementById('name');
   nameEl.oninput = () => { ui.name = nameEl.value; store('ijinden.name', ui.name); };
+  document.getElementById('sound').onclick = (e) => { e.stopPropagation(); setMuted(!isMuted()); e.currentTarget.textContent = isMuted() ? '🔇' : '🔊'; sfx('tap'); };
   document.getElementById('start-cpu').onclick = () => pickDeck('CPU対戦', startCpuGame);
   document.getElementById('start-online').onclick = () => (canOnline ? pickDeck('フレンド対戦', startHost) : toast('オンライン対戦はもうすぐ使えるようになります'));
   document.getElementById('open-builder').onclick = openBuilder;
@@ -182,7 +185,7 @@ const onlineHandlers = {
     const r = applyAction(ui.game, p, action);
     if (!r.ok) return; // 両端末で同じように無視されるので、ずれない
     ui.game = r.state;
-    if (!ui.replaying) { announce(before, r.state); ui.fx = planFx(before, r.state, p, action); }
+    if (!ui.replaying) { announce(before, r.state); ui.fx = planAll(before, r.state, p, action); }
     afterChange();
   },
   onPresence(on) {
@@ -473,7 +476,7 @@ function act(action, p = ME) {
   const before = ui.game;
   ui.game = r.state;
   announce(before, r.state);
-  ui.fx = planFx(before, r.state, p, action);
+  ui.fx = planAll(before, r.state, p, action);
   afterChange();
 }
 
@@ -486,6 +489,13 @@ function afterChange() {
   if (g.phase !== 'block') { ui.focusAtk = null; ui.blocks = {}; ui.blocksPrev = {}; }
   render();
   if (!ui.online) cpuLoop();
+}
+
+// 盤面のエフェクトに加えて、ターン開始と決着の音を鳴らす
+function planAll(before, after, p, action) {
+  if (after.phase === 'over' && before.phase !== 'over') setTimeout(() => sfx(after.winner === ME ? 'win' : 'lose'), 500);
+  else if (after.turn === ME && before.turn !== ME && after.phase === 'main') setTimeout(() => sfx('turn'), 250);
+  return planFx(before, after, p, action);
 }
 
 // バトル結果などの大事なログをトーストで知らせる
@@ -524,7 +534,7 @@ function step(p, action) {
     ui.game = applyAction(g, p, fb).state;
   } else ui.game = r.state;
   announce(before, ui.game);
-  ui.fx = planFx(before, ui.game, p, action);
+  ui.fx = planAll(before, ui.game, p, action);
   if (ui.game.phase !== 'block') { ui.focusAtk = null; ui.blocks = {}; ui.blocksPrev = {}; }
   render();
 }
@@ -691,12 +701,14 @@ function showGrave(p) {
 
 function showMenu() {
   const s = openSheet(`<h3>メニュー</h3><div class="menu">
+    <button class="btn ghost" data-m="sound">効果音：${isMuted() ? 'オフ' : 'オン'}</button>
     <button class="btn ghost" data-m="rules">ルールのおさらい</button>
     <button class="btn ghost" data-m="resign">降参してタイトルへ</button>
     <button class="btn ghost" data-m="close">閉じる</button></div>`);
   s.querySelector('[data-m="close"]').onclick = closeSheet;
   s.querySelector('[data-m="resign"]').onclick = () => { closeSheet(); leaveOnline(); ui.joinCode = null; ui.screen = 'title'; render(); };
   s.querySelector('[data-m="rules"]').onclick = showRules;
+  s.querySelector('[data-m="sound"]').onclick = (e) => { setMuted(!isMuted()); e.currentTarget.textContent = `効果音：${isMuted() ? 'オフ' : 'オン'}`; sfx('tap'); };
 }
 
 function showRules() {
@@ -735,6 +747,14 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
 }
 // 自動テスト用の入口
 window.__ijinden = { ui, act, seat: () => ({ ME, FOE }) };
+
+// 画面のタップ音（ボタンとカード）
+unlockAudio();
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('button, .card, .opt');
+  if (!t || t.id === 'sound' || t.dataset.m === 'sound') return;
+  sfx(t.classList.contains('card') || t.classList.contains('opt') ? 'card' : 'tap');
+}, true);
 
 // 対戦中に再読み込みしても、同じ部屋に戻る
 try {
