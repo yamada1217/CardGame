@@ -1,0 +1,469 @@
+import { CARDS, COLORS, DECKS } from './cards.js';
+import { createGame, applyAction, def, checkPlay, targetsFor, canAttackWith, canBlockWith, power, levelSum } from './engine.js';
+import { cpuMainAction, cpuBlocks } from './ai.js';
+
+const $app = document.getElementById('app');
+const $sheet = document.getElementById('sheet-root');
+const $toast = document.getElementById('toast');
+
+const ME = 0, CPU = 1;
+const CPU_DELAY = 650;
+
+// UI の一時的な状態（ゲームの状態とは分ける）
+const ui = {
+  screen: 'title',
+  myDeck: 'fire',
+  game: null,
+  mode: null,        // null | 'attack' | 'block' | 'target'
+  picks: [],         // アタッカー選択
+  blocks: {},        // { attackerUid: [blockerUid] }
+  focusAtk: null,    // ブロック割り当て中のアタッカー
+  pending: null,     // 対象を選ぶマホウ
+  seen: new Set(),   // 登場アニメーション用
+  logOpen: false,
+  busy: false,
+};
+
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function toast(text) {
+  $toast.textContent = text;
+  $toast.classList.add('show');
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => $toast.classList.remove('show'), 2200);
+}
+
+function vibrate(ms = 12) {
+  try { navigator.vibrate?.(ms); } catch { /* 非対応端末 */ }
+}
+
+// ---------- カードの描画 ----------
+
+const TYPE_LABEL = { ijin: 'イジン', haikei: 'ハイケイ', mahou: 'マホウ', maryoku: 'マリョク' };
+
+function kwBadges(d) {
+  const k = d.kw || {};
+  const list = [];
+  if (k.sokuo) list.push('即応');
+  if (k.watcher) list.push('ウォッチャー');
+  if (k.double) list.push('ダブル');
+  if (k.unblockable) list.push('不可視');
+  if (k.atk) list.push(`攻+${k.atk}`);
+  if (k.blk) list.push(`守+${k.blk}`);
+  return list;
+}
+
+function cardFace(inst, { size = 'm', p = ME, role = null, extra = '' } = {}) {
+  const d = def(inst);
+  const color = d.color || 'none';
+  const pw = d.type === 'ijin' && ui.game ? power(ui.game, p, inst, role) : d.power;
+  const boosted = d.type === 'ijin' && pw !== d.power;
+  const enter = !ui.seen.has(inst.uid) ? ' enter' : '';
+  ui.seen.add(inst.uid);
+  const kws = kwBadges(d);
+  return `
+    <div class="card ${size} c-${color} t-${d.type}${inst.tapped ? ' tapped' : ''}${enter} ${extra}" data-uid="${inst.uid}">
+      <div class="card-in">
+        <div class="lv">${d.level}</div>
+        ${d.type === 'mahou' ? `<div class="cost" title="魔力コスト">${d.cost}</div>` : ''}
+        <div class="emblem">${esc(d.name.replace(/のマリョク$/, '')[0])}</div>
+        <div class="name">${esc(d.name)}</div>
+        ${size !== 's' ? `<div class="type">${TYPE_LABEL[d.type]}</div>` : ''}
+        ${size === 'l' ? `<div class="text">${esc(d.text || '')}</div>` : ''}
+        ${size !== 's' && kws.length && size !== 'l' ? `<div class="kws">${kws.map((k) => `<span>${k}</span>`).join('')}</div>` : ''}
+        ${d.type === 'ijin' ? `<div class="pw${boosted ? ' up' : ''}">${pw}</div>` : ''}
+      </div>
+    </div>`;
+}
+
+function cardBack(uid = '', { size = 'm', extra = '', label = '' } = {}) {
+  return `<div class="card back ${size} ${extra}" data-uid="${uid}"><div class="card-in"><div class="crest">偉</div>${label ? `<div class="back-label">${label}</div>` : ''}</div></div>`;
+}
+
+function manaChip(m) {
+  if (!m.faceUp) return `<span class="chip down" title="裏向き：レベル1">1</span>`;
+  const d = def(m);
+  return `<span class="chip c-${d.color || 'none'}" title="${esc(d.name)}">${d.level}</span>`;
+}
+
+// ---------- 画面 ----------
+
+function render() {
+  if (ui.screen === 'title') return renderTitle();
+  renderGame();
+}
+
+function renderTitle() {
+  $app.innerHTML = `
+    <main class="title">
+      <div class="title-glow"></div>
+      <div class="logo">
+        <div class="logo-crest">偉</div>
+        <h1>イジンデン</h1>
+        <p class="sub">ONLINE</p>
+      </div>
+      <section class="deck-pick">
+        <h2>デッキを選ぶ</h2>
+        ${Object.entries(DECKS).map(([id, dk]) => `
+          <button class="deck ${ui.myDeck === id ? 'on' : ''}" data-deck="${id}">
+            <span class="deck-colors">${[...new Set(dk.cards.map((c) => CARDS[c].color).filter(Boolean))].map((c) => `<i class="dot c-${c}"></i>`).join('')}</span>
+            <span class="deck-name">${esc(dk.name)}</span>
+            <span class="deck-count">${dk.cards.length}枚</span>
+          </button>`).join('')}
+      </section>
+      <div class="title-actions">
+        <button class="btn primary big" id="start-cpu">CPUと対戦</button>
+        <button class="btn ghost big" id="start-online" aria-disabled="true">オンライン対戦<small>準備中</small></button>
+      </div>
+      <p class="fine">カードは仮データです。ルールは公開されている解説をもとにしています。</p>
+    </main>`;
+  $app.querySelectorAll('[data-deck]').forEach((b) => b.onclick = () => { ui.myDeck = b.dataset.deck; vibrate(); renderTitle(); });
+  document.getElementById('start-cpu').onclick = startCpuGame;
+  document.getElementById('start-online').onclick = () => toast('オンライン対戦は次のステップで追加します');
+}
+
+function startCpuGame() {
+  const other = Object.keys(DECKS).find((k) => k !== ui.myDeck);
+  Object.assign(ui, { screen: 'game', mode: null, picks: [], blocks: {}, focusAtk: null, pending: null, seen: new Set(), logOpen: false });
+  ui.game = createGame({ names: ['あなた', 'CPU'], decks: [ui.myDeck, other] });
+  render();
+  cpuLoop();
+}
+
+function phaseText(g) {
+  if (g.phase === 'over') return g.winner === ME ? '勝利' : '敗北';
+  if (g.phase === 'block') return g.turn === ME ? '相手がブロック中…' : 'ブロックを割り当てる';
+  if (ui.mode === 'attack') return 'アタッカーを選ぶ';
+  if (ui.mode === 'target') return '対象を選ぶ';
+  return g.turn === ME ? 'あなたのターン' : 'CPUのターン';
+}
+
+function renderGame() {
+  const g = ui.game;
+  const me = g.players[ME], cpu = g.players[CPU];
+  const myTurn = g.turn === ME && g.phase === 'main';
+  const atkSet = new Set(g.battle?.attackers || []);
+  const assigned = new Map();
+  Object.entries(ui.blocks).forEach(([a, list]) => list.forEach((b) => assigned.set(b, a)));
+  const atkIndex = (uid) => [...atkSet].indexOf(uid) + 1;
+  const lastLogs = g.log.slice(-2).map((l) => `<div class="log-line ${l.p === CPU ? 'foe' : l.p === ME ? 'mine' : ''}">${esc(l.text)}</div>`).join('');
+
+  const fieldCard = (c, p) => {
+    const d = def(c);
+    let extra = '';
+    let badge = '';
+    if (p === ME && ui.mode === 'attack' && canAttackWith(g, ME, c)) extra += ui.picks.includes(c.uid) ? ' picked' : ' can';
+    if (p === CPU && atkSet.has(c.uid)) { extra += ' attacking'; badge = `<b class="badge atk">${atkIndex(c.uid)}</b>`; if (ui.focusAtk === c.uid) extra += ' focus'; }
+    if (p === ME && atkSet.has(c.uid)) extra += ' attacking';
+    if (p === ME && g.phase === 'block' && g.turn === CPU && canBlockWith(c)) extra += ' can';
+    if (assigned.has(c.uid)) { extra += ' blocking'; badge = `<b class="badge blk">${atkIndex(assigned.get(c.uid))}</b>`; }
+    if (p === CPU && ui.mode === 'target' && targetsFor(g, ME, def({ id: ui.pending.id })).includes(c.uid)) extra += ' can';
+    return `<div class="slot">${cardFace(c, { p, size: 's', role: atkSet.has(c.uid) ? 'atk' : null, extra })}${badge}</div>`;
+  };
+  const guardian = (c, p) => {
+    let extra = c.tapped ? ' tapped' : '';
+    let badge = '';
+    if (p === ME && g.phase === 'block' && g.turn === CPU && canBlockWith({ ...c, guardian: true })) extra += ' can';
+    if (assigned.has(c.uid)) { extra += ' blocking'; badge = `<b class="badge blk">${atkIndex(assigned.get(c.uid))}</b>`; }
+    return `<div class="slot">${cardBack(c.uid, { size: 'g', extra: `guardian${extra}` })}${badge}</div>`;
+  };
+
+  const ijins = (pl) => pl.field.filter((c) => def(c).type === 'ijin');
+  const haikeis = (pl) => pl.field.filter((c) => def(c).type === 'haikei');
+
+  $app.innerHTML = `
+    <main class="game ${g.turn === ME ? 'my-turn' : 'foe-turn'} mode-${ui.mode || 'none'} phase-${g.phase}">
+      <header class="bar foe">
+        <button class="icon-btn" id="menu" aria-label="メニュー">☰</button>
+        <div class="who"><span class="avatar foe">C</span><span>${esc(cpu.name)}</span></div>
+        <div class="counts">
+          <span title="山札">山 ${cpu.deck.length}</span><span title="手札">手 ${cpu.hand.length}</span><span title="墓地" data-grave="1">墓 ${cpu.grave.length}</span>
+        </div>
+      </header>
+
+      <section class="side foe">
+        <div class="mana-row">${cpu.mana.map(manaChip).join('')}<span class="lvsum">Lv ${levelSum(cpu)}</span></div>
+        <div class="row guardians">${cpu.guardians.map((c) => guardian(c, CPU)).join('') || '<span class="empty">ガーディアンなし</span>'}</div>
+        <div class="row field">${ijins(cpu).map((c) => fieldCard(c, CPU)).join('')}${haikeis(cpu).map((c) => fieldCard(c, CPU)).join('')}</div>
+      </section>
+
+      <div class="center">
+        <div class="phase-pill ${g.turn === ME ? 'mine' : 'foe'}">${phaseText(g)}</div>
+        <button class="log-peek" id="log-open">${lastLogs}</button>
+      </div>
+
+      <section class="side mine">
+        <div class="row field">${ijins(me).map((c) => fieldCard(c, ME)).join('')}${haikeis(me).map((c) => fieldCard(c, ME)).join('')}</div>
+        <div class="row guardians">${me.guardians.map((c) => guardian(c, ME)).join('') || '<span class="empty">ガーディアンなし</span>'}</div>
+        <div class="mana-row">${me.mana.map(manaChip).join('')}<span class="lvsum">Lv ${levelSum(me)}</span>
+          <span class="rights"><i class="${g.turn === ME && g.rights.mana ? 'on' : ''}">魔</i><i class="${g.turn === ME && g.rights.summon ? 'on' : ''}">召</i><i class="${g.turn === ME && !g.battleUsed ? 'on' : ''}">戦</i></span>
+        </div>
+      </section>
+
+      <section class="hand ${myTurn && !ui.mode ? 'active' : ''}">
+        ${me.hand.map((c) => {
+          const d = def(c);
+          const ok = myTurn && !ui.mode && (d.type === 'maryoku' ? g.rights.mana > 0 : checkPlay(g, ME, c.uid).ok);
+          return cardFace(c, { size: 'm', extra: ok ? 'playable' : '' });
+        }).join('')}
+        <div class="hand-meta">山札 ${me.deck.length}・墓地 <button class="link" data-grave="0">${me.grave.length}</button></div>
+      </section>
+
+      <footer class="actions">${actionButtons(g)}</footer>
+    </main>`;
+
+  bindGame();
+  if (g.phase === 'over') showGameOver();
+}
+
+function actionButtons(g) {
+  if (g.phase === 'over') return `<button class="btn primary" data-act="again">もう一度</button><button class="btn ghost" data-act="title">タイトルへ</button>`;
+  if (g.phase === 'block' && g.turn === CPU) {
+    const missing = g.battle.attackers.filter((a) => !(ui.blocks[a] || []).length).length;
+    return `<div class="hint">${ui.focusAtk ? '光っている自分のカードをタップしてブロッカーにする' : '相手のアタッカーをタップして選ぶ'}</div>
+      <button class="btn danger" data-act="block">${missing ? `確定（未割当 ${missing}）` : 'ブロック確定'}</button>`;
+  }
+  if (g.turn !== ME) return `<div class="hint wait"><span class="spinner"></span>CPUが考え中…</div>`;
+  if (ui.mode === 'attack') return `<button class="btn ghost" data-act="cancel">やめる</button><button class="btn danger" data-act="attack" ${ui.picks.length ? '' : 'disabled'}>アタック（${ui.picks.length}体）</button>`;
+  if (ui.mode === 'target') return `<div class="hint">相手のイジンをタップ</div><button class="btn ghost" data-act="cancel">やめる</button>`;
+  const canBattle = !g.battleUsed && g.players[ME].field.some((c) => canAttackWith(g, ME, c));
+  return `<button class="btn ghost" data-act="battle" ${canBattle ? '' : 'disabled'}>バトル</button><button class="btn primary" data-act="end">ターン終了</button>`;
+}
+
+function bindGame() {
+  const g = ui.game;
+  $app.querySelectorAll('[data-act]').forEach((b) => b.onclick = () => onAction(b.dataset.act));
+  document.getElementById('menu').onclick = showMenu;
+  document.getElementById('log-open').onclick = showLog;
+  $app.querySelectorAll('[data-grave]').forEach((b) => b.onclick = (e) => { e.stopPropagation(); showGrave(Number(b.dataset.grave)); });
+
+  $app.querySelectorAll('.hand .card').forEach((el) => el.onclick = () => {
+    const c = g.players[ME].hand.find((x) => x.uid === el.dataset.uid);
+    if (c) showHandCard(c);
+  });
+  $app.querySelectorAll('.side .card').forEach((el) => el.onclick = () => onBoardTap(el));
+}
+
+function onBoardTap(el) {
+  const g = ui.game, uid = el.dataset.uid;
+  const mine = el.closest('.side').classList.contains('mine');
+  const pl = g.players[mine ? ME : CPU];
+  const inst = pl.field.find((c) => c.uid === uid);
+  const guard = pl.guardians.find((c) => c.uid === uid);
+
+  if (ui.mode === 'attack' && mine && inst && canAttackWith(g, ME, inst)) {
+    ui.picks = ui.picks.includes(uid) ? ui.picks.filter((u) => u !== uid) : [...ui.picks, uid];
+    vibrate();
+    return render();
+  }
+  if (ui.mode === 'target' && !mine && inst && targetsFor(g, ME, def({ id: ui.pending.id })).includes(uid)) {
+    const pend = ui.pending;
+    ui.mode = null; ui.pending = null;
+    return act({ type: 'play', uid: pend.uid, target: uid });
+  }
+  if (g.phase === 'block' && g.turn === CPU) {
+    if (!mine && g.battle.attackers.includes(uid)) { ui.focusAtk = uid; vibrate(); return render(); }
+    if (mine && ui.focusAtk && (guard || inst)) {
+      const ok = guard ? canBlockWith({ ...guard, guardian: true }) : canBlockWith(inst);
+      if (!ok) return toast('このカードはブロックできません');
+      for (const k of Object.keys(ui.blocks)) ui.blocks[k] = ui.blocks[k].filter((u) => u !== uid);
+      const cur = ui.blocks[ui.focusAtk] || [];
+      const wasHere = (ui.blocksPrev || {})[uid] === ui.focusAtk;
+      ui.blocks[ui.focusAtk] = wasHere ? cur : [...cur, uid];
+      ui.blocksPrev = {};
+      Object.entries(ui.blocks).forEach(([a, l]) => l.forEach((b) => ui.blocksPrev[b] = a));
+      vibrate();
+      return render();
+    }
+    if (mine && !ui.focusAtk) return toast('先に相手のアタッカーをタップ');
+  }
+  if (inst) showCardDetail(inst, mine ? ME : CPU);
+  else if (guard) toast('ガーディアン：裏向きのカード。パワー0の壁として1回ブロックできる');
+}
+
+async function onAction(a) {
+  const g = ui.game;
+  vibrate();
+  if (a === 'battle') { ui.mode = 'attack'; ui.picks = []; return render(); }
+  if (a === 'cancel') { ui.mode = null; ui.picks = []; ui.pending = null; return render(); }
+  if (a === 'attack') { const picks = ui.picks; ui.mode = null; ui.picks = []; return act({ type: 'declareAttack', attackers: picks }); }
+  if (a === 'end') return act({ type: 'endTurn' });
+  if (a === 'block') {
+    const missing = g.battle.attackers.filter((x) => !(ui.blocks[x] || []).length).length;
+    if (missing && !(await confirmSheet('ブロックしていないアタッカーがいます。このままだと負けます。確定しますか？', '確定する'))) return;
+    const blocks = ui.blocks;
+    ui.blocks = {}; ui.blocksPrev = {}; ui.focusAtk = null;
+    return act({ type: 'declareBlocks', blocks }, ME);
+  }
+  if (a === 'again') return startCpuGame();
+  if (a === 'title') { ui.screen = 'title'; closeSheet(); return render(); }
+}
+
+function act(action, p = ME) {
+  const r = applyAction(ui.game, p, action);
+  if (!r.ok) { toast(r.why); return render(); }
+  const before = ui.game;
+  ui.game = r.state;
+  announce(before, r.state);
+  render();
+  cpuLoop();
+}
+
+// バトル結果などの大事なログをトーストで知らせる
+function announce(before, after) {
+  const fresh = after.log.slice(before.log.length - (before.log.length >= 200 ? 1 : 0));
+  const key = fresh.reverse().find((l) => /破壊|通った|勝利|アタック/.test(l.text));
+  if (key) toast(key.text);
+}
+
+async function cpuLoop() {
+  if (ui.busy) return;
+  ui.busy = true;
+  try {
+    while (ui.game.phase !== 'over') {
+      const g = ui.game;
+      if (g.phase === 'block' && g.turn === ME) {
+        await sleep(CPU_DELAY);
+        step(CPU, { type: 'declareBlocks', blocks: cpuBlocks(g, CPU) });
+      } else if (g.turn === CPU && g.phase === 'main') {
+        await sleep(CPU_DELAY);
+        step(CPU, cpuMainAction(ui.game, CPU));
+      } else break;
+    }
+  } finally {
+    ui.busy = false;
+  }
+  if (ui.game.phase === 'block' && ui.game.turn === CPU) {
+    ui.focusAtk = ui.game.battle.attackers[0];
+    vibrate(40);
+    render();
+  }
+}
+
+function step(p, action) {
+  const r = applyAction(ui.game, p, action);
+  const before = ui.game;
+  ui.game = r.ok ? r.state : applyAction(ui.game, p, { type: 'endTurn' }).state;
+  announce(before, ui.game);
+  render();
+}
+
+// ---------- シート（下から出るパネル） ----------
+
+function openSheet(html, cls = '') {
+  $sheet.innerHTML = `<div class="scrim"></div><div class="sheet ${cls}"><div class="grabber"></div>${html}</div>`;
+  requestAnimationFrame(() => $sheet.classList.add('open'));
+  $sheet.querySelector('.scrim').onclick = closeSheet;
+  return $sheet.querySelector('.sheet');
+}
+
+function closeSheet() {
+  $sheet.classList.remove('open');
+  setTimeout(() => { if (!$sheet.classList.contains('open')) $sheet.innerHTML = ''; }, 220);
+}
+
+function showHandCard(c) {
+  const g = ui.game, d = def(c);
+  const myMain = g.turn === ME && g.phase === 'main' && !ui.mode;
+  const chk = checkPlay(g, ME, c.uid);
+  const verb = { ijin: '召喚する', haikei: '展開する', mahou: '発動する' }[d.type];
+  const btns = [];
+  if (d.type === 'maryoku') btns.push(`<button class="btn primary" data-do="up" ${myMain && g.rights.mana ? '' : 'disabled'}>表向きで配置</button>`);
+  else btns.push(`<button class="btn primary" data-do="play" ${myMain && chk.ok ? '' : 'disabled'}>${verb}</button>`);
+  btns.push(`<button class="btn ghost" data-do="down" ${myMain && g.rights.mana ? '' : 'disabled'}>裏向きでマリョクに</button>`);
+  const why = !myMain ? '自分のメインフェイズに使えます' : (d.type !== 'maryoku' && !chk.ok ? chk.why : '');
+  const sheet = openSheet(`
+    <div class="detail">
+      ${cardFace(c, { size: 'l' })}
+      <div class="detail-info">
+        ${conditions(d)}
+        ${why ? `<p class="why">${esc(why)}</p>` : ''}
+        <div class="sheet-actions">${btns.join('')}</div>
+      </div>
+    </div>`);
+  sheet.querySelectorAll('[data-do]').forEach((b) => b.onclick = () => {
+    closeSheet();
+    const k = b.dataset.do;
+    if (k === 'up' || k === 'down') return act({ type: 'placeMana', uid: c.uid, faceUp: k === 'up' });
+    if (d.target) { ui.mode = 'target'; ui.pending = c; return render(); }
+    act({ type: 'play', uid: c.uid });
+  });
+}
+
+function conditions(d) {
+  const rows = [];
+  if (d.color && d.type !== 'maryoku') rows.push(`<span><i class="dot c-${d.color}"></i>${COLORS[d.color].name}のマリョクが必要</span>`);
+  if (d.type !== 'maryoku') rows.push(`<span>レベル ${d.level} 以上</span>`);
+  if (d.type === 'mahou') rows.push(`<span>魔力ゾーンから ${d.cost} 枚を墓地へ</span>`);
+  return rows.length ? `<div class="conds">${rows.join('')}</div>` : '';
+}
+
+function showCardDetail(inst, p) {
+  const d = def(inst);
+  openSheet(`
+    <div class="detail">
+      ${cardFace(inst, { size: 'l', p })}
+      <div class="detail-info">
+        ${d.type === 'ijin' ? `<p class="stat">現在のパワー <b>${power(ui.game, p, inst)}</b>${inst.tapped ? '・寝ている' : ''}</p>` : ''}
+        ${conditions(d)}
+        <div class="sheet-actions"><button class="btn ghost" data-close>閉じる</button></div>
+      </div>
+    </div>`).querySelector('[data-close]').onclick = closeSheet;
+}
+
+function showLog() {
+  const g = ui.game;
+  openSheet(`<h3>ログ</h3><div class="log-list">${g.log.slice().reverse().map((l) => `<div class="log-line ${l.p === CPU ? 'foe' : l.p === ME ? 'mine' : ''}">${esc(l.text)}</div>`).join('')}</div>`, 'tall');
+}
+
+function showGrave(p) {
+  const pl = ui.game.players[p];
+  openSheet(`<h3>${esc(pl.name)}の墓地（${pl.grave.length}）</h3><div class="grid">${pl.grave.map((c) => cardFace(c, { size: 's' })).join('') || '<p class="empty">まだありません</p>'}</div>`, 'tall');
+}
+
+function showMenu() {
+  const s = openSheet(`<h3>メニュー</h3><div class="menu">
+    <button class="btn ghost" data-m="rules">ルールのおさらい</button>
+    <button class="btn ghost" data-m="resign">降参してタイトルへ</button>
+    <button class="btn ghost" data-m="close">閉じる</button></div>`);
+  s.querySelector('[data-m="close"]').onclick = closeSheet;
+  s.querySelector('[data-m="resign"]').onclick = () => { closeSheet(); ui.screen = 'title'; render(); };
+  s.querySelector('[data-m="rules"]').onclick = showRules;
+}
+
+function showRules() {
+  openSheet(`<h3>ルールのおさらい</h3><div class="rules">
+    <p><b>勝ち方</b>：アタックして、相手がブロックできないアタッカーを通せば勝ち。山札切れでも負け。</p>
+    <p><b>1ターンにできること</b>：マリョク配置1回・イジン召喚1回・バトル1回。ハイケイとマホウは条件を満たせば何枚でも。</p>
+    <p><b>使う条件</b>：同じ色の表向きマリョクがあり、魔力ゾーンのレベル合計（裏向きは1）がカードのレベル以上。</p>
+    <p><b>ガーディアン</b>：最初に4枚伏せる壁。パワー0なので、ブロックすると1回で壊れる。</p>
+    <p><b>バトル</b>：パワーが大きい方が勝ち、同じなら相打ち。複数でブロックするとパワーを合計できる。</p>
+  </div>`, 'tall');
+}
+
+function confirmSheet(text, ok) {
+  return new Promise((res) => {
+    const s = openSheet(`<p class="confirm">${esc(text)}</p><div class="sheet-actions"><button class="btn ghost" data-c="0">戻る</button><button class="btn danger" data-c="1">${esc(ok)}</button></div>`);
+    s.querySelectorAll('[data-c]').forEach((b) => b.onclick = () => { closeSheet(); res(b.dataset.c === '1'); });
+  });
+}
+
+function showGameOver() {
+  const g = ui.game;
+  if ($sheet.querySelector('.result')) return;
+  const win = g.winner === ME;
+  const s = openSheet(`<div class="result ${win ? 'win' : 'lose'}">
+      <div class="result-title">${win ? '勝利' : '敗北'}</div>
+      <p>${esc(g.winReason)}</p>
+      <div class="sheet-actions"><button class="btn ghost" data-r="title">タイトルへ</button><button class="btn primary" data-r="again">もう一度</button></div>
+    </div>`);
+  s.querySelectorAll('[data-r]').forEach((b) => b.onclick = () => { closeSheet(); onAction(b.dataset.r); });
+}
+
+// ---------- 起動 ----------
+
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+render();
