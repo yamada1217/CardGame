@@ -27,6 +27,7 @@ export const legacyText = (d) => (d.legacy ? LEGACY_TEXT[d.legacy] || d.legacy :
 export function cardFace(inst, { size = 'm', game = null, p = 0, role = null, extra = '', seen = null, card = null } = {}) {
   const d = card || def(inst);
   const color = d.color || 'none';
+  const multi = (d.colors?.length || 0) > 1;
   const pw = d.type === 'ijin' && game && !card ? power(game, p, inst, role) : d.power;
   const boosted = d.type === 'ijin' && pw !== d.power;
   let enter = '';
@@ -38,12 +39,12 @@ export function cardFace(inst, { size = 'm', game = null, p = 0, role = null, ex
   const lv = game && !card && d.type === 'haikei' ? effectiveLevel(game, p, d) : d.level;
   const showText = size === 'l' || size === 'xl';
   return `
-    <div class="card ${size} c-${color} r-${esc(d.rarity || 'N')} t-${d.type}${d.type !== 'maryoku' ? ' has-art' : ''}${inst.tapped ? ' tapped' : ''}${enter} ${extra}" data-uid="${inst.uid || ''}" data-id="${d.id}">
+    <div class="card ${size} c-${color} r-${esc(d.rarity || 'N')} t-${d.type}${d.type !== 'maryoku' ? ' has-art' : ''}${multi ? ' multi' : ''}${inst.tapped ? ' tapped' : ''}${enter} ${extra}"${multi ? ` style="--c2:var(--${d.colors[1]})"` : ''} data-uid="${inst.uid || ''}" data-id="${d.id}">
       <div class="card-in">
         <div class="art" style='background-image:${artFor(d)}'></div>
         <div class="lv">${lv}</div>
         ${d.type === 'mahou' ? `<div class="cost" title="魔力コスト">${d.cost}</div>` : ''}
-        <div class="emblem">${esc(d.type === 'maryoku' ? (COLORS[d.color]?.name || '魔') : d.name[0])}</div>
+        <div class="emblem${multi && d.type === 'maryoku' ? ' duo' : ''}">${esc(d.type === 'maryoku' ? (multi ? d.colors.map((x) => COLORS[x]?.name || '').join('') : COLORS[d.color]?.name || '魔') : d.name[0])}</div>
         <div class="name">${esc(d.name)}</div>
         ${size !== 's' ? `<div class="type">${TYPE_LABEL[d.type]}</div>` : ''}
         ${showText ? `<div class="text">${esc(d.text || '').replace(/\n/g, '<br>')}${d.legacy ? `<span class="legacy">遺業 ${esc(legacyText(d))}</span>` : ''}</div>` : ''}

@@ -16,7 +16,7 @@ function rng(seed) {
 const pick = (r, list) => list[Math.floor(r() * list.length)];
 const f = (n) => Math.round(n * 10) / 10;
 
-function ink(r, c) {
+function ink(r, c, c2) {
   const lean = f((r() - .5) * 8);
   const head = pick(r, ['knot', 'eboshi', 'kabuto', 'tophat', 'long', 'crown', 'hood']);
   const prop = pick(r, ['sword', 'fan', 'staff', 'scroll', 'none', 'sword']);
@@ -58,10 +58,10 @@ function ink(r, c) {
     ${props[prop]}
   </g>
   <g fill="#120d0a" opacity=".55">${dots}</g>
-  <rect x="80" y="8" width="11" height="11" rx="1.5" fill="${c}" opacity=".85"/>`;
+  <rect x="80" y="8" width="11" height="11" rx="1.5" fill="${c}" opacity=".85"/>${c2 ? `<rect x="80" y="21" width="11" height="11" rx="1.5" fill="${c2}" opacity=".85"/>` : ''}`;
 }
 
-function magic(r, c) {
+function magic(r, c, c2) {
   const n = pick(r, [5, 6, 7, 8]);
   const k = n === 6 ? 2 : Math.floor(n / 2);
   const rot = r() * 360;
@@ -84,6 +84,7 @@ function magic(r, c) {
   <g fill="#fff">${stars}</g>
   <g stroke="${c}" stroke-linejoin="round">
     ${ring(41, 4, .25)}${ring(41, 1.2, .9)}${ring(33, .8, .8)}${ring(24, .6, .6)}
+    ${c2 ? `<g stroke="${c2}">${ring(41, 4, .35)}${ring(37, 1.4, .95)}${ring(24, 1, .8)}</g>` : ''}
     <polygon points="${star}" fill="none" stroke-width="3.5" opacity=".25"/>
     <polygon points="${star}" fill="none" stroke="#fff" stroke-width=".9" opacity=".9"/>
   </g>
@@ -92,7 +93,7 @@ function magic(r, c) {
   <circle cx="50" cy="66" r="3" fill="#fff"/>`;
 }
 
-function scene(r, c) {
+function scene(r, c, c2) {
   const sky = pick(r, [['#f7c98b', '#e9876a', '#5a3f6e'], ['#bfe0f0', '#86b6d8', '#3e5f86'], ['#20264a', '#3a3a6e', '#0d0f22'], ['#f2e4c4', '#d8b98a', '#7d6248']]);
   const night = sky[0] === '#20264a';
   const thing = pick(r, ['castle', 'torii', 'pagoda', 'pine', 'gate']);
@@ -115,29 +116,33 @@ function scene(r, c) {
   <circle cx="${f(25 + r() * 50)}" cy="${f(28 + r() * 14)}" r="${night ? 8 : 12}" fill="${night ? '#f4efd8' : '#fff4d6'}" opacity=".9"/>
   ${night ? Array.from({ length: 14 }, () => `<circle cx="${f(r() * 100)}" cy="${f(r() * 60)}" r=".6" fill="#fff"/>`).join('') : ''}
   ${ridge(72, 22, c, .35)}
-  ${ridge(86, 16, '#3a2e26', .55)}
+  ${ridge(86, 16, c2 || '#3a2e26', c2 ? .45 : .55)}
   ${things[thing]}
   ${ridge(104, 8, g, .9)}
   <rect y="88" width="100" height="6" fill="#fff" opacity=".12"/>`;
 }
 
-function crystal(r, c) {
+function crystal(r, c, c2) {
   return `
-  <defs><radialGradient id="g" cx=".5" cy=".45" r=".6"><stop offset="0" stop-color="${c}" stop-opacity=".8"/><stop offset="1" stop-color="#0d0a08"/></radialGradient></defs>
+  <defs><radialGradient id="g" cx=".5" cy=".45" r=".6"><stop offset="0" stop-color="${c}" stop-opacity=".8"/><stop offset="1" stop-color="#0d0a08"/></radialGradient>
+  <radialGradient id="g2" cx=".5" cy=".45" r=".6"><stop offset="0" stop-color="${c2 || c}" stop-opacity=".8"/><stop offset="1" stop-color="#0d0a08"/></radialGradient></defs>
   <rect width="100" height="140" fill="url(#g)"/>
+  ${c2 ? '<path d="M100 0 V140 H0Z" fill="url(#g2)"/>' : ''}
   <g stroke="#fff" stroke-opacity=".5" stroke-width=".6">
     <path d="M50 22 L72 52 L50 104 L28 52Z" fill="${c}" opacity=".55"/>
+    ${c2 ? `<path d="M50 22 L72 52 L50 104Z" fill="${c2}" opacity=".7"/>` : ''}
     <path d="M50 22 L58 52 L50 104 L42 52Z M28 52 H72" fill="#fff" fill-opacity=".18"/>
   </g>`;
 }
 
 // 背景に使う data URI（なければ空文字）
 export function artFor(d) {
-  const key = `${d.id}|${d.color}|${d.type}`;
+  const key = `${d.id}|${(d.colors || [d.color]).join('+')}|${d.type}`;
   if (cache.has(key)) return cache.get(key);
   const r = rng(String(d.id) + d.name);
   const c = HUE[d.color] || HUE.none;
-  const body = d.type === 'ijin' ? ink(r, c) : d.type === 'mahou' ? magic(r, c) : d.type === 'haikei' ? scene(r, c) : d.type === 'maryoku' ? crystal(r, c) : '';
+  const c2 = d.colors?.length > 1 ? HUE[d.colors[1]] : null;
+  const body = d.type === 'ijin' ? ink(r, c, c2) : d.type === 'mahou' ? magic(r, c, c2) : d.type === 'haikei' ? scene(r, c, c2) : d.type === 'maryoku' ? crystal(r, c, c2) : '';
   const url = body ? `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice">${body}</svg>`)}")` : '';
   cache.set(key, url);
   return url;

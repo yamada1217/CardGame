@@ -296,6 +296,22 @@ function renderGame() {
 
   const ijins = (pl) => pl.field.filter((c) => def(c).type === 'ijin');
   const haikeis = (pl) => pl.field.filter((c) => def(c).type === 'haikei');
+  // 左にハイケイの束、中央にイジン、右に墓地
+  const fieldWrap = (pl, p) => {
+    const hk = haikeis(pl);
+    const step = hk.length > 1 ? Math.min(16, 44 / (hk.length - 1)) : 0;
+    const top = pl.grave[pl.grave.length - 1];
+    return `<div class="field-wrap">
+      <button class="hk-stack${hk.length ? '' : ' empty'}" data-stack="${p}" aria-label="ハイケイ">
+        ${hk.map((c, i) => `<div class="slot" style="top:${Math.round(i * step)}px">${cardFace(c, { p, size: 's' })}</div>`).join('') || '<span>ハイケイ</span>'}
+        ${hk.length ? `<b class="pile-count">${hk.length}</b>` : ''}
+      </button>
+      <div class="row field">${ijins(pl).map((c) => fieldCard(c, p)).join('')}</div>
+      <button class="grave-pile${top ? '' : ' empty'}" data-grave="${p}" aria-label="墓地">
+        ${top ? cardFace(top, { size: 's', extra: 'pile-top' }) : ''}<span class="pile-label">墓地 ${pl.grave.length}</span>
+      </button>
+    </div>`;
+  };
 
   $app.innerHTML = `
     <main class="game ${g.turn === ME ? 'my-turn' : 'foe-turn'} mode-${ui.mode || 'none'} phase-${g.phase}">
@@ -310,7 +326,7 @@ function renderGame() {
       <section class="side foe">
         <div class="mana-row">${cpu.mana.map(manaChip).join('')}<span class="lvsum">Lv ${levelSum(g, FOE)}</span></div>
         <div class="row guardians">${cpu.guardians.map((c) => guardian(c, FOE)).join('') || '<span class="empty">ガーディアンなし</span>'}</div>
-        <div class="row field">${ijins(cpu).map((c) => fieldCard(c, FOE)).join('')}${haikeis(cpu).map((c) => fieldCard(c, FOE)).join('')}</div>
+        ${fieldWrap(cpu, FOE)}
       </section>
 
       <div class="center">
@@ -319,7 +335,7 @@ function renderGame() {
       </div>
 
       <section class="side mine">
-        <div class="row field">${ijins(me).map((c) => fieldCard(c, ME)).join('')}${haikeis(me).map((c) => fieldCard(c, ME)).join('')}</div>
+        ${fieldWrap(me, ME)}
         <div class="row guardians">${me.guardians.map((c) => guardian(c, ME)).join('') || '<span class="empty">ガーディアンなし</span>'}</div>
         <div class="mana-row">${me.mana.map(manaChip).join('')}<span class="lvsum">Lv ${levelSum(g, ME)}</span>
           <span class="rights"><i class="${g.turn === ME && g.rights.mana ? 'on' : ''}">魔</i><i class="${g.turn === ME && g.rights.summon ? 'on' : ''}">召</i><i class="${g.turn === ME && !g.battleUsed ? 'on' : ''}">戦</i></span>
@@ -376,7 +392,8 @@ function bindGame() {
     const c = g.players[ME].hand.find((x) => x.uid === el.dataset.uid);
     if (c) showHandCard(c);
   });
-  $app.querySelectorAll('.side .card').forEach((el) => el.onclick = () => { if (!ui.longPressed) onBoardTap(el); ui.longPressed = false; });
+  $app.querySelectorAll('[data-stack]').forEach((b) => b.onclick = (e) => { e.stopPropagation(); showHaikei(Number(b.dataset.stack)); });
+  $app.querySelectorAll('.side .row .card').forEach((el) => el.onclick = () => { if (!ui.longPressed) onBoardTap(el); ui.longPressed = false; });
   // スタンド：魔力ゾーンの裏向きイジンをブロッカーにする
   $app.querySelectorAll('[data-stand]').forEach((el) => el.onclick = () => {
     const uid = el.dataset.stand;
@@ -392,7 +409,7 @@ function bindGame() {
 
 // アタック・ブロックの選択中でも、長押しでカードを拡大できる
 function bindLongPress() {
-  $app.querySelectorAll('.side .card[data-id]').forEach((el) => {
+  $app.querySelectorAll('.side .row .card[data-id]').forEach((el) => {
     let t = null;
     const start = () => {
       ui.longPressed = false;
@@ -693,10 +710,27 @@ function showLog() {
   openSheet(`<h3>ログ</h3><div class="log-list">${g.log.slice().reverse().map((l) => `<div class="log-line ${l.p === FOE ? 'foe' : l.p === ME ? 'mine' : ''}">${esc(l.text)}</div>`).join('')}</div>`, 'tall');
 }
 
-function showGrave(p) {
+// 墓地：新しい順に、種類ごとに絞り込める
+function showGrave(p, tab = 'all') {
   const pl = ui.game.players[p];
-  const s = openSheet(`<h3>${esc(pl.name)}の墓地（${pl.grave.length}）</h3><p class="zoom-hint">カードをタップすると拡大します</p><div class="grid">${pl.grave.map((c) => cardFace(c, { size: 's' })).join('') || '<p class="empty">まだありません</p>'}</div>`, 'tall');
+  const list = [...pl.grave].reverse();
+  const tabs = [['all', 'すべて'], ['ijin', 'イジン'], ['mahou', 'マホウ'], ['haikei', 'ハイケイ'], ['maryoku', 'マリョク']];
+  const of = (t) => (t === 'all' ? list : list.filter((c) => def(c).type === t));
+  const s = openSheet(`<h3>${esc(pl.name)}の墓地（${list.length}枚）</h3>
+    <div class="seg">${tabs.map(([k, l]) => `<button class="seg-btn${k === tab ? ' on' : ''}" data-tab="${k}" ${of(k).length || k === 'all' ? '' : 'disabled'}>${l}<small>${of(k).length}</small></button>`).join('')}</div>
+    <p class="zoom-hint">新しい順に並んでいます。タップで拡大</p>
+    <div class="grid pile-grid">${of(tab).map((c) => cardFace(c, { size: 'm' })).join('') || '<p class="empty">まだありません</p>'}</div>`, 'tall');
+  s.querySelectorAll('[data-tab]').forEach((b) => b.onclick = (e) => { e.stopPropagation(); showGrave(p, b.dataset.tab); });
   zoomOnTap(s, (uid) => pl.grave.find((c) => c.uid === uid), p);
+}
+
+function showHaikei(p) {
+  const pl = ui.game.players[p];
+  const list = pl.field.filter((c) => def(c).type === 'haikei');
+  const s = openSheet(`<h3>${esc(pl.name)}のハイケイ（${list.length}枚）</h3>
+    <p class="zoom-hint">置いた順に並んでいます。タップで拡大</p>
+    <div class="grid pile-grid">${list.map((c) => cardFace(c, { p, size: 'm' })).join('') || '<p class="empty">まだありません</p>'}</div>`, 'tall');
+  zoomOnTap(s, (uid) => list.find((c) => c.uid === uid), p);
 }
 
 function showMenu() {
