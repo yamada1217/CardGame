@@ -153,7 +153,9 @@ function renderEditor() {
         <button class="deck-title" id="b-rename"><span>${esc(deck.name)}</span><i>✎</i></button>
         <button class="icon-btn" id="b-menu" aria-label="メニュー">⋯</button>
       </header>
+      <div class="b-body" id="b-body">
       <section class="summary" id="b-summary">${summaryHtml()}</section>
+      <div class="b-sticky">
       <nav class="b-tabs">
         <button data-tab="list" class="${f.tab === 'list' ? 'on' : ''}">カード一覧</button>
         <button data-tab="deck" class="${f.tab === 'deck' ? 'on' : ''}">デッキ <b id="b-tabcount">${total(deck.cards)}</b></button>
@@ -166,22 +168,24 @@ function renderEditor() {
           <div class="chips">
             <button class="chip-btn ${f.level ? '' : 'on'}" data-level="">Lv すべて</button>
             ${LEVELS.map((l) => `<button class="chip-btn ${f.level === l ? 'on' : ''}" data-level="${l}">${l === '1' ? '〜1' : l}</button>`).join('')}
-          </div>
-          <div class="chips">
+            <span class="chip-sep"></span>
             <button class="chip-btn ${f.type ? '' : 'on'}" data-type="">種類 すべて</button>
             ${TYPE_ORDER.map((t) => `<button class="chip-btn ${f.type === t ? 'on' : ''}" data-type="${t}">${TYPE_LABEL[t]}</button>`).join('')}
           </div>
           <div class="search-row">
             <input class="b-search" id="b-q" type="search" placeholder="名前・効果・特性で検索" value="${esc(f.q)}" enterkeyhint="search">
-            <button class="chip-btn toggle ${f.all ? 'on' : ''}" id="b-all">${f.all ? '全576種' : '使えるカード'}</button>
+            <button class="chip-btn toggle ${f.all ? 'on' : ''}" id="b-all">${f.all ? '✓ ' : ''}準備中も表示</button>
           </div>
         </div>
         <p class="b-hint">タップでデッキに追加・長押しで詳細　<span>${listCount}種</span></p>
+      </div>
         <div class="b-grid" id="b-grid">${catalog.filter(matches).map(tileHtml).join('') || '<p class="b-empty">条件に合うカードがありません</p>'}</div>
       ` : `
         <p class="b-hint">名前をタップで詳細・＋−で枚数を変更</p>
+      </div>
         <div class="deck-list" id="b-decklist">${deckListHtml()}</div>
       `}
+      </div>
     </main>`;
   bindEditor();
 }
@@ -208,7 +212,7 @@ function summaryHtml() {
     <div class="curve" aria-label="レベル分布">
       ${curve.map((b, i) => {
         const sum = b.ijin + b.haikei + b.mahou;
-        return `<div class="bar-col"><span class="bar-n">${sum || ''}</span><div class="bar">${['mahou', 'haikei', 'ijin'].map((t) => b[t] ? `<i class="seg ${t}" style="height:${(b[t] / peak) * 100}%"></i>` : '').join('')}</div><span class="bar-lv">${LEVELS[i]}</span></div>`;
+        return `<div class="bar-col"><span class="bar-n">${sum || ''}</span><div class="lv-bar">${['mahou', 'haikei', 'ijin'].map((t) => b[t] ? `<i class="seg ${t}" style="height:${(b[t] / peak) * 100}%"></i>` : '').join('')}</div><span class="bar-lv">${LEVELS[i]}</span></div>`;
       }).join('')}
     </div>
     <div class="type-counts">
@@ -258,7 +262,7 @@ function bindEditor() {
   $('b-back').onclick = () => { deck = null; renderList(); };
   $('b-rename').onclick = rename;
   $('b-menu').onclick = showEditorMenu;
-  ctx.app.querySelectorAll('[data-tab]').forEach((b) => b.onclick = () => { f.tab = b.dataset.tab; ctx.vibrate(); renderEditor(); });
+  ctx.app.querySelectorAll('[data-tab]').forEach((b) => b.onclick = () => { f.tab = b.dataset.tab; rerenderList(); });
 
   if (f.tab === 'list') {
     ctx.app.querySelectorAll('[data-color]').forEach((b) => b.onclick = () => {
@@ -286,10 +290,14 @@ function bindEditor() {
 // 絞り込みを変えたとき：スクロール位置を保ったまま描き直す
 function rerenderList() {
   ctx.vibrate(8);
-  const scroller = ctx.app.querySelector('.filters');
-  const x = [...(scroller?.querySelectorAll('.chips') || [])].map((el) => el.scrollLeft);
+  const x = [...ctx.app.querySelectorAll('.filters .chips')].map((el) => el.scrollLeft);
+  const body = document.getElementById('b-body');
+  const sticky = ctx.app.querySelector('.b-sticky');
+  // 絞り込み欄が上に貼り付いているときは、一覧の先頭が見える位置に戻す
+  const top = Math.min(body.scrollTop, sticky.offsetTop);
   renderEditor();
   ctx.app.querySelectorAll('.filters .chips').forEach((el, i) => { el.scrollLeft = x[i] || 0; });
+  document.getElementById('b-body').scrollTop = top;
 }
 
 function refreshGrid() {
@@ -359,11 +367,7 @@ function afterCountChange(id, tileEl) {
   const tc = document.getElementById('b-tabcount');
   if (tc) tc.textContent = total(deck.cards);
   const list = document.getElementById('b-decklist');
-  if (list) {
-    const top = list.scrollTop;
-    list.innerHTML = deckListHtml();
-    list.scrollTop = top;
-  }
+  if (list) list.innerHTML = deckListHtml();
   const tile = tileEl || ctx.app.querySelector(`.tile[data-id="${CSS.escape(id)}"]`);
   if (tile) {
     const c = byId(id), n = deck.cards[id] || 0, lim = copyLimit(c);
@@ -382,8 +386,8 @@ function showCard(id) {
   const n = () => deck.cards[id] || 0;
   const ok = playable(id);
   const actions = ok ? [
-    { label: '1枚減らす', onClick: () => { remove(id); showCard(id); } },
-    { label: `1枚追加（いま${n()}枚）`, primary: true, onClick: () => { add(id); showCard(id); } },
+    { label: '1枚減らす', disabled: !n(), onClick: () => { remove(id); showCard(id); } },
+    { label: `1枚追加（いま${n()}枚）`, primary: true, disabled: n() >= copyLimit(c), onClick: () => { add(id); showCard(id); } },
   ] : [];
   zoomCard({ uid: `b-${id}`, id }, { card: c, note: ok ? '' : 'このカードは効果を準備中のため、まだ対戦では使えません。', actions });
 }

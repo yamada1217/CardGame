@@ -52,6 +52,9 @@
 .deck-title span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .deck-title i { font-style: normal; font-size: 13px; color: var(--muted); }
 
+.b-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.b-sticky { position: sticky; top: 0; z-index: 2; background: var(--bg); padding: 10px 0 2px; margin-top: 2px; box-shadow: 0 8px 12px -10px rgba(0, 0, 0, .8); }
+.chip-sep { flex: none; width: 1px; margin: 4px 2px; background: var(--line); }
 .summary { flex: none; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 6px 14px; margin: 0 12px; padding: 10px 14px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); }
 .count-box { display: flex; flex-direction: column; justify-content: center; min-width: 92px; }
 .count { font-family: var(--serif); line-height: 1; }
@@ -60,10 +63,10 @@
 .count-box.ok .count b { color: var(--gold-2); }
 .count-state { font-size: 10.5px; color: var(--muted); margin-top: 4px; line-height: 1.35; max-width: 110px; }
 .count-box.ok .count-state { color: var(--green); }
-.curve { display: flex; gap: 5px; align-items: flex-end; height: 62px; }
+.curve { display: flex; gap: 5px; align-items: flex-end; height: 56px; }
 .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; }
 .bar-n { font-size: 9.5px; color: var(--muted); height: 12px; }
-.bar { flex: 1; width: 100%; max-width: 20px; display: flex; flex-direction: column-reverse; border-radius: 4px 4px 2px 2px; overflow: hidden; background: rgba(255, 255, 255, .04); }
+.lv-bar { flex: 1; width: 100%; max-width: 20px; display: flex; flex-direction: column-reverse; border-radius: 4px 4px 2px 2px; overflow: hidden; background: rgba(255, 255, 255, .04); }
 .seg { display: block; transition: height .25s cubic-bezier(.2, .8, .2, 1); }
 .seg.ijin, .tc.ijin i { background: var(--gold); }
 .seg.haikei, .tc.haikei i { background: #8f7a5c; }
@@ -75,7 +78,7 @@
 .tc i { width: 8px; height: 8px; border-radius: 2px; }
 .tc b { color: var(--text); font-size: 12px; }
 
-.b-tabs { flex: none; display: flex; margin: 10px 12px 0; padding: 3px; border-radius: 12px; background: var(--panel); }
+.b-tabs { flex: none; display: flex; margin: 0 12px; padding: 3px; border-radius: 12px; background: var(--panel); }
 .b-tabs button { flex: 1; height: 36px; border-radius: 9px; font-weight: 700; font-size: 14px; color: var(--muted); transition: background .2s, color .2s; }
 .b-tabs button.on { background: var(--panel-2); color: var(--text); box-shadow: 0 2px 8px rgba(0, 0, 0, .35); }
 .b-tabs b { display: inline-block; min-width: 22px; padding: 0 6px; border-radius: 999px; background: rgba(216, 178, 106, .2); color: var(--gold-2); font-size: 12px; margin-left: 4px; }
@@ -92,7 +95,7 @@
 .chip-btn.toggle { height: 34px; }
 .b-hint { flex: none; margin: 8px 14px 4px; font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
 
-.b-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; padding: 4px 12px calc(16px + var(--safe-bottom)); align-content: start; }
+.b-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; padding: 4px 12px calc(16px + var(--safe-bottom)); align-content: start; }
 
 /* カード一覧のタイル */
 .tile { --c: var(--none); --c2: var(--c); position: relative; aspect-ratio: 5 / 7; border-radius: 9px; padding: 2px; background: linear-gradient(160deg, var(--c), color-mix(in srgb, var(--c2) 40%, #120e0b)); display: flex; flex-direction: column; align-items: center; overflow: hidden; transition: transform .15s, opacity .2s, box-shadow .2s; touch-action: manipulation; -webkit-touch-callout: none; }
@@ -117,7 +120,7 @@
 @keyframes bump { 40% { transform: scale(1.08); } }
 
 /* デッキの中身 */
-.deck-list { flex: 1; overflow-y: auto; padding: 0 12px calc(16px + var(--safe-bottom)); }
+.deck-list { padding: 0 12px calc(16px + var(--safe-bottom)); }
 .deck-list h4 { margin: 12px 4px 6px; font-size: 12px; color: var(--muted); letter-spacing: .1em; }
 .d-row { --c: var(--none); display: flex; align-items: center; gap: 8px; padding: 6px 8px; margin-bottom: 6px; border-radius: 12px; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 22%, var(--panel)), var(--panel) 45%); border-left: 3px solid var(--c); }
 .d-row.c-red { --c: var(--red); } .d-row.c-blue { --c: var(--blue); } .d-row.c-green { --c: var(--green); } .d-row.c-yellow { --c: var(--yellow); } .d-row.c-purple { --c: var(--purple); } .d-row.c-none { --c: var(--gold); }
@@ -129,3 +132,6 @@
 .d-btn:active { transform: scale(.92); }
 .d-btn[disabled] { opacity: .3; }
 .d-n { width: 22px; text-align: center; font-weight: 900; font-size: 16px; color: var(--gold-2); }
+
+/* 黄・紫のカード（拡大表示用） */
+.card.c-yellow { --c: var(--yellow); } .card.c-purple { --c: var(--purple); }
