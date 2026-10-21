@@ -37,7 +37,7 @@ export function createGame({ seed = Date.now() >>> 0, names = ['あなた', 'あ
     rights: { mana: 1, summon: 1 }, battleUsed: false, battle: null, log: [],
     queue: [], prompt: null, fx: {}, mulligan: [null, null],
     players: [0, 1].map((p) => ({
-      name: names[p], deckId: decks[p], deck: DECKS[decks[p]].cards.map((id, n) => ({ uid: `${p}-${n}`, id })),
+      name: names[p], deckId: Array.isArray(decks[p]) ? 'custom' : decks[p], deck: (Array.isArray(decks[p]) ? decks[p] : DECKS[decks[p]].cards).map((id, n) => ({ uid: `${p}-${n}`, id })),
       hand: [], mana: [], field: [], guardians: [], grave: [], turnsTaken: 0,
     })),
   };

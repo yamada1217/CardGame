@@ -2,6 +2,8 @@ import { CARDS, COLORS, DECKS, LEGACY_TEXT } from './cards.js';
 import { createGame, applyAction, def, checkPlay, canAttackWith, canBlockWith, canBlockPair, power, levelSum, isDouble, effectiveLevel, waitingFor, findOnBoard } from './engine.js';
 import { cpuAction } from './ai.js';
 import { onlineAvailable, hostRoom, joinRoom, roomUrl, savedSession } from './online.js';
+import { usableDecks, deckForMatch, sanitizeDeck, deckColors } from './decks.js';
+import { openDeckList } from './builder.js';
 
 const $app = document.getElementById('app');
 const $sheet = document.getElementById('sheet-root');
@@ -14,7 +16,7 @@ const CPU_DELAY = 650;
 // UI の一時的な状態（ゲームの状態とは分ける）
 const ui = {
   screen: 'title',
-  myDeck: 'R01',
+  myDeck: load('ijinden.deck') || 'R01', // 'R01' などのスターター、または自作の 'u:<id>'
   game: null,
   mode: null,        // null | 'attack'
   picks: [],         // アタッカー選択
@@ -106,6 +108,7 @@ function manaChip(m) {
 function render() {
   if (ui.screen === 'title') return renderTitle();
   if (ui.screen === 'waiting') return renderWaiting();
+  if (ui.screen === 'builder') return;
   renderGame();
 }
 
@@ -123,30 +126,58 @@ function renderTitle() {
       <section class="deck-pick">
         <h2>なまえ</h2>
         <input class="name-input" id="name" maxlength="12" placeholder="プレイヤー" value="${esc(ui.name)}" autocomplete="nickname">
-        <h2>デッキを選ぶ</h2>
-        ${Object.entries(DECKS).map(([id, dk]) => `
-          <button class="deck ${ui.myDeck === id ? 'on' : ''}" data-deck="${id}">
-            <span class="deck-colors">${[...new Set(dk.cards.map((c) => CARDS[c].color).filter(Boolean))].map((c) => `<i class="dot c-${c}"></i>`).join('')}</span>
-            <span class="deck-name">${esc(dk.name)}</span>
-            <span class="deck-count">${dk.cards.length}枚</span>
-          </button>`).join('')}
       </section>
-      <div class="title-actions">
-        ${join ? `<button class="btn primary big" id="join">部屋 ${esc(join)} に参加</button>` : ''}
-        <button class="btn ${join ? 'ghost' : 'primary'} big" id="start-cpu">CPUと対戦</button>
-        ${join ? '' : `<button class="btn ghost big" id="start-online" ${canOnline ? '' : 'aria-disabled="true"'}>友達と対戦${canOnline ? '' : '<small>準備中</small>'}</button>`}
-      </div>
-      <p class="fine">スターター3種の全カードを収録。ルールは公式ルール・Q&Aにもとづいています。</p>
+      ${join ? `<button class="invite" id="join"><span class="invite-label">招待されています</span><b>部屋 ${esc(join)} に参加する</b><span class="chev">›</span></button>` : ''}
+      <nav class="modes">
+        <button class="mode" id="start-cpu"><span class="mode-icon cpu">⚔</span><span class="mode-text"><b>CPU対戦</b><small>ひとりで練習</small></span><span class="chev">›</span></button>
+        <button class="mode${canOnline ? '' : ' soon'}" id="start-online"><span class="mode-icon friend">⇄</span><span class="mode-text"><b>フレンド対戦</b><small>${canOnline ? 'リンクを送って1対1' : '準備中'}</small></span><span class="chev">›</span></button>
+        <button class="mode" id="open-builder"><span class="mode-icon build">▤</span><span class="mode-text"><b>デッキ構築</b><small>自分だけのデッキを作る</small></span><span class="chev">›</span></button>
+      </nav>
+      <p class="fine">ルールは公式ルール・Q&amp;Aにもとづいています。</p>
     </main>`;
   const nameEl = document.getElementById('name');
   nameEl.oninput = () => { ui.name = nameEl.value; store('ijinden.name', ui.name); };
-  $app.querySelectorAll('[data-deck]').forEach((b) => b.onclick = () => { ui.myDeck = b.dataset.deck; vibrate(); renderTitle(); });
-  document.getElementById('start-cpu').onclick = startCpuGame;
-  const on = document.getElementById('start-online');
-  if (on) on.onclick = () => (canOnline ? startHost() : toast('オンライン対戦はもうすぐ使えるようになります'));
+  document.getElementById('start-cpu').onclick = () => pickDeck('CPU対戦', startCpuGame);
+  document.getElementById('start-online').onclick = () => (canOnline ? pickDeck('フレンド対戦', startHost) : toast('オンライン対戦はもうすぐ使えるようになります'));
+  document.getElementById('open-builder').onclick = openBuilder;
   const jb = document.getElementById('join');
-  if (jb) jb.onclick = () => startJoin(join);
+  if (jb) jb.onclick = () => pickDeck(`部屋 ${join} に参加`, () => startJoin(join));
 }
+
+// 対戦の前に使うデッキを選ぶ
+function pickDeck(title, onGo) {
+  vibrate();
+  const decks = usableDecks();
+  if (!decks.some((d) => d.key === ui.myDeck && d.ok)) ui.myDeck = 'R01';
+  const row = (d) => `
+    <button class="deck ${ui.myDeck === d.key ? 'on' : ''}${d.ok ? '' : ' ng'}" data-deck="${esc(d.key)}" ${d.ok ? '' : 'disabled'}>
+      <span class="deck-colors">${deckColors(d.cards).map((c) => `<i class="dot c-${c}"></i>`).join('') || '<i class="dot"></i>'}</span>
+      <span class="deck-name">${esc(d.name)}${d.ok ? '' : `<small>${esc(d.why)}</small>`}</span>
+      <span class="deck-count">${d.cards.length}枚</span>
+    </button>`;
+  const mine = decks.filter((d) => !d.starter), starters = decks.filter((d) => d.starter);
+  const s = openSheet(`<h3>${esc(title)}：デッキを選ぶ</h3>
+    <div class="deck-choices">
+      ${mine.length ? `<p class="group-label">自作デッキ</p>${mine.map(row).join('')}` : ''}
+      <p class="group-label">スターター</p>${starters.map(row).join('')}
+    </div>
+    <div class="sheet-actions row"><button class="btn ghost" data-go="build">デッキを作る</button><button class="btn primary" data-go="start">このデッキで対戦</button></div>`, 'tall');
+  s.querySelectorAll('[data-deck]').forEach((b) => b.onclick = () => {
+    ui.myDeck = b.dataset.deck;
+    s.querySelectorAll('[data-deck]').forEach((x) => x.classList.toggle('on', x === b));
+    vibrate();
+  });
+  s.querySelector('[data-go="build"]').onclick = () => { closeSheet(); openBuilder(); };
+  s.querySelector('[data-go="start"]').onclick = () => { store('ijinden.deck', ui.myDeck); closeSheet(); onGo(); };
+}
+
+function openBuilder() {
+  ui.screen = 'builder';
+  openDeckList({ app: $app, toast, vibrate, openSheet, closeSheet, confirmSheet, exit: () => { ui.screen = 'title'; render(); } });
+}
+
+// 選んだデッキの中身（スターターはID、自作はカードIDの配列）。使えなければスターター
+const myDeckForMatch = () => deckForMatch(ui.myDeck) || 'R01';
 
 function resetBoardUi() {
   Object.assign(ui, { screen: 'game', mode: null, picks: [], blocks: {}, blocksPrev: {}, focusAtk: null, pending: null, seen: new Set(), logOpen: false });
@@ -159,7 +190,7 @@ function startCpuGame() {
   const other = others[Math.floor(Math.random() * others.length)];
   ME = 0; FOE = 1;
   resetBoardUi();
-  ui.game = createGame({ names: [myName(), 'CPU'], decks: [ui.myDeck, other] });
+  ui.game = createGame({ names: [myName(), 'CPU'], decks: [myDeckForMatch(), other] });
   render();
   cpuLoop();
 }
@@ -172,7 +203,7 @@ const onlineHandlers = {
     ME = me; FOE = 1 - me;
     resetBoardUi();
     ui.waiting = null;
-    ui.game = createGame({ seed: start.seed, names: start.names, decks: start.decks, first: start.first });
+    ui.game = createGame({ seed: start.seed, names: start.names, decks: start.decks.map(sanitizeDeck), first: start.first });
     ui.replaying = true;
     render();
     setTimeout(() => { ui.replaying = false; }, 0);
@@ -197,7 +228,7 @@ async function startHost() {
   leaveOnline();
   ui.screen = 'waiting'; ui.waiting = { code: null }; render();
   try {
-    ui.online = await hostRoom({ name: myName(), deck: ui.myDeck }, onlineHandlers);
+    ui.online = await hostRoom({ name: myName(), deck: myDeckForMatch() }, onlineHandlers);
   } catch (e) {
     console.warn(e);
     toast('部屋を作れませんでした。通信状態を確認して、もう一度お試しください');
@@ -209,7 +240,7 @@ async function startJoin(code) {
   leaveOnline();
   ui.screen = 'waiting'; ui.waiting = { code, joining: true }; render();
   try {
-    ui.online = await joinRoom(code, { name: myName(), deck: ui.myDeck }, onlineHandlers);
+    ui.online = await joinRoom(code, { name: myName(), deck: myDeckForMatch() }, onlineHandlers);
   } catch (e) {
     toast(e.message);
     ui.joinCode = null;
