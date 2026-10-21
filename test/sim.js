@@ -55,6 +55,7 @@ for (let g = 0; g < N; g++) {
     if (stats.crashes < 6) console.log('crash', g, e.stack.split('\n').slice(0, 4).join(' | '));
     continue;
   }
+  if (s.phase !== 'over' && s.turnNo > 60) { stats.long = (stats.long || 0) + 1; continue; } // 決着がつかない長期戦（引き分け扱い）
   if (s.phase !== 'over') { if (steps >= 3000) { stats.stuck++; if (stats.stuck < 5) console.log('too long', g, s.log.slice(-5).map((l) => l.text)); } continue; }
   stats.games++;
   const k = s.winReason.includes('山札') ? 'deckout' : s.winReason.includes('防げなかった') ? 'attack' : 'other';
