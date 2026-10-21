@@ -273,6 +273,16 @@ function renderGame() {
   const assigned = new Map();
   Object.entries(ui.blocks).forEach(([a, list]) => list.forEach((b) => assigned.set(b, a)));
   const atkIndex = (uid) => [...atkSet].indexOf(uid) + 1;
+  // ブロッカーの番号：何体目のブロッカーか（アタッカーが複数なら「アタッカー番号-何体目」）
+  const blkLabel = (uid) => {
+    const a = assigned.get(uid);
+    const k = (ui.blocks[a] || []).indexOf(uid) + 1;
+    return atkSet.size > 1 ? `${atkIndex(a)}-${k}` : `${k}`;
+  };
+  const blkCount = (c, p) => {
+    const n = (ui.blocks[c.uid] || []).length, need = pressure(g, p, c);
+    return n || need > 1 ? `<b class="badge cnt${n >= need ? ' ok' : ''}">🛡${n}${need > 1 ? `/${need}` : ''}</b>` : '';
+  };
   const lastLogs = g.log.slice(-2).map((l) => `<div class="log-line ${l.p === FOE ? 'foe' : l.p === ME ? 'mine' : ''}">${esc(l.text)}</div>`).join('');
 
   const fieldCard = (c, p) => {
@@ -280,17 +290,17 @@ function renderGame() {
     let extra = '';
     let badge = '';
     if (p === ME && ui.mode === 'attack' && canAttackWith(g, ME, c)) extra += ui.picks.includes(c.uid) ? ' picked' : ' can';
-    if (p === FOE && atkSet.has(c.uid)) { extra += ' attacking'; badge = `<b class="badge atk">${atkIndex(c.uid)}</b>`; if (ui.focusAtk === c.uid) extra += ' focus'; }
+    if (p === FOE && atkSet.has(c.uid)) { extra += ' attacking'; badge = `<b class="badge atk">${atkIndex(c.uid)}</b>${g.phase === 'block' && g.turn === FOE ? blkCount(c, p) : ''}`; if (ui.focusAtk === c.uid) extra += ' focus'; }
     if (p === ME && atkSet.has(c.uid)) extra += ' attacking';
     if (p === ME && g.phase === 'block' && g.turn === FOE && blockableNow(g, c)) extra += ' can';
-    if (assigned.has(c.uid)) { extra += ' blocking'; badge = `<b class="badge blk">${atkIndex(assigned.get(c.uid))}</b>`; }
+    if (assigned.has(c.uid)) { extra += ' blocking'; badge = `<b class="badge blk">${blkLabel(c.uid)}</b>`; }
     return `<div class="slot">${cardFace(c, { p, size: 's', role: atkSet.has(c.uid) ? 'atk' : null, extra })}${badge}</div>`;
   };
   const guardian = (c, p) => {
     let extra = c.tapped ? ' tapped' : '';
     let badge = '';
     if (p === ME && g.phase === 'block' && g.turn === FOE && blockableNow(g, { ...c, guardian: true })) extra += ' can';
-    if (assigned.has(c.uid)) { extra += ' blocking'; badge = `<b class="badge blk">${atkIndex(assigned.get(c.uid))}</b>`; }
+    if (assigned.has(c.uid)) { extra += ' blocking'; badge = `<b class="badge blk">${blkLabel(c.uid)}</b>`; }
     return `<div class="slot">${cardBack(c.uid, { size: 'g', extra: `guardian${extra}` })}${badge}</div>`;
   };
 
@@ -371,7 +381,10 @@ function actionButtons(g) {
   if (g.prompt) return g.prompt.p === ME ? `<button class="btn primary" data-act="decide">選択する</button>` : `<div class="hint wait"><span class="spinner"></span>相手が選んでいます…</div>`;
   if (g.phase === 'block' && g.turn === FOE) {
     const missing = g.battle.attackers.filter((a) => !(ui.blocks[a] || []).length).length;
-    return `<div class="hint">${ui.focusAtk ? '光っている自分のカードをタップしてブロッカーにする' : '相手のアタッカーをタップして選ぶ'}</div>
+    const fa = ui.focusAtk && findOnBoard(g, ui.focusAtk);
+    const n = fa ? (ui.blocks[ui.focusAtk] || []).length : 0, need = fa ? pressure(g, FOE, fa.inst) : 1;
+    const focusText = fa ? `${esc(def(fa.inst).name)}を<b>${n}体</b>でブロック中${need > 1 ? `（${need}体以上必要）` : ''}<br><small>光るカードをタップで追加・もう一度で解除</small>` : '';
+    return `<div class="hint">${fa ? focusText : '相手のアタッカーをタップして選ぶ'}</div>
       <button class="btn danger" data-act="block">${missing ? `確定（未割当 ${missing}）` : 'ブロック確定'}</button>`;
   }
   if (g.phase === 'block') return `<div class="hint wait"><span class="spinner"></span>${ui.online ? '相手がブロックを選んでいます…' : 'CPUが考え中…'}</div>`;
