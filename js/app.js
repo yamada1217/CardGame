@@ -1,6 +1,6 @@
-import { CARDS, COLORS, DECKS } from './cards.js';
-import { createGame, applyAction, def, checkPlay, targetsFor, canAttackWith, canBlockWith, power, levelSum } from './engine.js';
-import { cpuMainAction, cpuBlocks } from './ai.js';
+import { CARDS, COLORS, DECKS, LEGACY_TEXT } from './cards.js';
+import { createGame, applyAction, def, checkPlay, canAttackWith, canBlockWith, canBlockPair, power, levelSum, isDouble, effectiveLevel, waitingFor, findOnBoard } from './engine.js';
+import { cpuAction } from './ai.js';
 import { onlineAvailable, hostRoom, joinRoom, roomUrl, savedSession } from './online.js';
 
 const $app = document.getElementById('app');
@@ -14,9 +14,9 @@ const CPU_DELAY = 650;
 // UI の一時的な状態（ゲームの状態とは分ける）
 const ui = {
   screen: 'title',
-  myDeck: 'fire',
+  myDeck: 'R01',
   game: null,
-  mode: null,        // null | 'attack' | 'block' | 'target'
+  mode: null,        // null | 'attack'
   picks: [],         // アタッカー選択
   blocks: {},        // { attackerUid: [blockerUid] }
   focusAtk: null,    // ブロック割り当て中のアタッカー
@@ -57,11 +57,11 @@ function kwBadges(d) {
   const k = d.kw || {};
   const list = [];
   if (k.sokuo) list.push('即応');
-  if (k.watcher) list.push('ウォッチャー');
   if (k.double) list.push('ダブル');
-  if (k.unblockable) list.push('不可視');
+  if (k.voyage) list.push('航海');
+  if (k.shippitsu) list.push('執筆');
   if (k.atk) list.push(`攻+${k.atk}`);
-  if (k.blk) list.push(`守+${k.blk}`);
+  if (k.cannotBlock) list.push('防×');
   return list;
 }
 
@@ -76,17 +76,20 @@ function cardFace(inst, { size = 'm', p = ME, role = null, extra = '' } = {}) {
   return `
     <div class="card ${size} c-${color} t-${d.type}${inst.tapped ? ' tapped' : ''}${enter} ${extra}" data-uid="${inst.uid}">
       <div class="card-in">
-        <div class="lv">${d.level}</div>
+        <div class="lv">${ui.game && d.type === 'haikei' ? effectiveLevel(ui.game, p, d) : d.level}</div>
         ${d.type === 'mahou' ? `<div class="cost" title="魔力コスト">${d.cost}</div>` : ''}
-        <div class="emblem">${esc(d.name.replace(/のマリョク$/, '')[0])}</div>
+        <div class="emblem">${esc(d.type === 'maryoku' ? (COLORS[d.color]?.name || '魔') : d.name[0])}</div>
         <div class="name">${esc(d.name)}</div>
         ${size !== 's' ? `<div class="type">${TYPE_LABEL[d.type]}</div>` : ''}
-        ${size === 'l' ? `<div class="text">${esc(d.text || '')}</div>` : ''}
+        ${size === 'l' ? `<div class="text">${esc(d.text || '').replace(/\n/g, '<br>')}${d.legacy ? `<span class="legacy">遺業 ${esc(LEGACY_TEXT[d.legacy] || d.legacy)}</span>` : ''}</div>` : ''}
         ${size !== 's' && kws.length && size !== 'l' ? `<div class="kws">${kws.map((k) => `<span>${k}</span>`).join('')}</div>` : ''}
-        ${d.type === 'ijin' ? `<div class="pw${boosted ? ' up' : ''}">${pw}</div>` : ''}
+        ${d.type === 'ijin' ? `<div class="pw${boosted ? ' up' : ''}">${fmtPower(pw)}</div>` : ''}
       </div>
     </div>`;
 }
+
+// 6000 → 6k のように短く（大きいカードでは省略しない）
+const fmtPower = (v) => String(v);
 
 function cardBack(uid = '', { size = 'm', extra = '', label = '' } = {}) {
   return `<div class="card back ${size} ${extra}" data-uid="${uid}"><div class="card-in"><div class="crest">偉</div>${label ? `<div class="back-label">${label}</div>` : ''}</div></div>`;
@@ -133,7 +136,7 @@ function renderTitle() {
         <button class="btn ${join ? 'ghost' : 'primary'} big" id="start-cpu">CPUと対戦</button>
         ${join ? '' : `<button class="btn ghost big" id="start-online" ${canOnline ? '' : 'aria-disabled="true"'}>友達と対戦${canOnline ? '' : '<small>準備中</small>'}</button>`}
       </div>
-      <p class="fine">カードは仮データです。ルールは公開されている解説をもとにしています。</p>
+      <p class="fine">スターター3種の全カードを収録。ルールは公式ルール・Q&Aにもとづいています。</p>
     </main>`;
   const nameEl = document.getElementById('name');
   nameEl.oninput = () => { ui.name = nameEl.value; store('ijinden.name', ui.name); };
@@ -152,7 +155,8 @@ function resetBoardUi() {
 
 function startCpuGame() {
   leaveOnline();
-  const other = Object.keys(DECKS).find((k) => k !== ui.myDeck);
+  const others = Object.keys(DECKS).filter((k) => k !== ui.myDeck);
+  const other = others[Math.floor(Math.random() * others.length)];
   ME = 0; FOE = 1;
   resetBoardUi();
   ui.game = createGame({ names: [myName(), 'CPU'], decks: [ui.myDeck, other] });
@@ -251,9 +255,10 @@ function renderWaiting() {
 
 function phaseText(g) {
   if (g.phase === 'over') return g.winner === ME ? '勝利' : '敗北';
+  if (g.phase === 'mulligan') return '手札の確認';
+  if (g.prompt) return g.prompt.p === ME ? '選択してください' : '相手が選択中…';
   if (g.phase === 'block') return g.turn === ME ? '相手がブロック中…' : 'ブロックを割り当てる';
   if (ui.mode === 'attack') return 'アタッカーを選ぶ';
-  if (ui.mode === 'target') return '対象を選ぶ';
   return g.turn === ME ? 'あなたのターン' : `${g.players[FOE].name}のターン`;
 }
 
@@ -274,15 +279,14 @@ function renderGame() {
     if (p === ME && ui.mode === 'attack' && canAttackWith(g, ME, c)) extra += ui.picks.includes(c.uid) ? ' picked' : ' can';
     if (p === FOE && atkSet.has(c.uid)) { extra += ' attacking'; badge = `<b class="badge atk">${atkIndex(c.uid)}</b>`; if (ui.focusAtk === c.uid) extra += ' focus'; }
     if (p === ME && atkSet.has(c.uid)) extra += ' attacking';
-    if (p === ME && g.phase === 'block' && g.turn === FOE && canBlockWith(c)) extra += ' can';
+    if (p === ME && g.phase === 'block' && g.turn === FOE && blockableNow(g, c)) extra += ' can';
     if (assigned.has(c.uid)) { extra += ' blocking'; badge = `<b class="badge blk">${atkIndex(assigned.get(c.uid))}</b>`; }
-    if (p === FOE && ui.mode === 'target' && targetsFor(g, ME, def({ id: ui.pending.id })).includes(c.uid)) extra += ' can';
     return `<div class="slot">${cardFace(c, { p, size: 's', role: atkSet.has(c.uid) ? 'atk' : null, extra })}${badge}</div>`;
   };
   const guardian = (c, p) => {
     let extra = c.tapped ? ' tapped' : '';
     let badge = '';
-    if (p === ME && g.phase === 'block' && g.turn === FOE && canBlockWith({ ...c, guardian: true })) extra += ' can';
+    if (p === ME && g.phase === 'block' && g.turn === FOE && blockableNow(g, { ...c, guardian: true })) extra += ' can';
     if (assigned.has(c.uid)) { extra += ' blocking'; badge = `<b class="badge blk">${atkIndex(assigned.get(c.uid))}</b>`; }
     return `<div class="slot">${cardBack(c.uid, { size: 'g', extra: `guardian${extra}` })}${badge}</div>`;
   };
@@ -333,10 +337,19 @@ function renderGame() {
 
   bindGame();
   if (g.phase === 'over') showGameOver();
+  else syncDecisionSheet(g);
+}
+
+// 割り当て中のアタッカーに対してブロックできるか
+function blockableNow(g, inst) {
+  const atk = ui.focusAtk && g.players[FOE].field.find((c) => c.uid === ui.focusAtk);
+  return atk ? canBlockPair(g, ME, inst, atk) : canBlockWith(inst);
 }
 
 function actionButtons(g) {
   if (g.phase === 'over') return `<button class="btn primary" data-act="again">もう一度</button><button class="btn ghost" data-act="title">タイトルへ</button>`;
+  if (g.phase === 'mulligan') return g.mulligan[ME] === null ? `<button class="btn primary" data-act="decide">手札を確認する</button>` : `<div class="hint wait"><span class="spinner"></span>相手が手札を確認しています…</div>`;
+  if (g.prompt) return g.prompt.p === ME ? `<button class="btn primary" data-act="decide">選択する</button>` : `<div class="hint wait"><span class="spinner"></span>相手が選んでいます…</div>`;
   if (g.phase === 'block' && g.turn === FOE) {
     const missing = g.battle.attackers.filter((a) => !(ui.blocks[a] || []).length).length;
     return `<div class="hint">${ui.focusAtk ? '光っている自分のカードをタップしてブロッカーにする' : '相手のアタッカーをタップして選ぶ'}</div>
@@ -345,7 +358,6 @@ function actionButtons(g) {
   if (g.phase === 'block') return `<div class="hint wait"><span class="spinner"></span>${ui.online ? '相手がブロックを選んでいます…' : 'CPUが考え中…'}</div>`;
   if (g.turn !== ME) return `<div class="hint wait"><span class="spinner"></span>${ui.online ? '相手の番です…' : 'CPUが考え中…'}</div>`;
   if (ui.mode === 'attack') return `<button class="btn ghost" data-act="cancel">やめる</button><button class="btn danger" data-act="attack" ${ui.picks.length ? '' : 'disabled'}>アタック（${ui.picks.length}体）</button>`;
-  if (ui.mode === 'target') return `<div class="hint">相手のイジンをタップ</div><button class="btn ghost" data-act="cancel">やめる</button>`;
   const canBattle = !g.battleUsed && g.players[ME].field.some((c) => canAttackWith(g, ME, c));
   return `<button class="btn ghost" data-act="battle" ${canBattle ? '' : 'disabled'}>バトル</button><button class="btn primary" data-act="end">ターン終了</button>`;
 }
@@ -376,16 +388,11 @@ function onBoardTap(el) {
     vibrate();
     return render();
   }
-  if (ui.mode === 'target' && !mine && inst && targetsFor(g, ME, def({ id: ui.pending.id })).includes(uid)) {
-    const pend = ui.pending;
-    ui.mode = null; ui.pending = null;
-    return act({ type: 'play', uid: pend.uid, target: uid });
-  }
   if (g.phase === 'block' && g.turn === FOE) {
     if (!mine && g.battle.attackers.includes(uid)) { ui.focusAtk = uid; vibrate(); return render(); }
     if (mine && ui.focusAtk && (guard || inst)) {
-      const ok = guard ? canBlockWith({ ...guard, guardian: true }) : canBlockWith(inst);
-      if (!ok) return toast('このカードはブロックできません');
+      const ok = blockableNow(g, guard ? { ...guard, guardian: true } : inst);
+      if (!ok) return toast('このカードではこのアタッカーをブロックできません');
       for (const k of Object.keys(ui.blocks)) ui.blocks[k] = ui.blocks[k].filter((u) => u !== uid);
       const cur = ui.blocks[ui.focusAtk] || [];
       const wasHere = (ui.blocksPrev || {})[uid] === ui.focusAtk;
@@ -405,10 +412,13 @@ async function onAction(a) {
   const g = ui.game;
   vibrate();
   if (a === 'battle') { ui.mode = 'attack'; ui.picks = []; return render(); }
-  if (a === 'cancel') { ui.mode = null; ui.picks = []; ui.pending = null; return render(); }
+  if (a === 'cancel') { ui.mode = null; ui.picks = []; return render(); }
   if (a === 'attack') { const picks = ui.picks; ui.mode = null; ui.picks = []; return act({ type: 'declareAttack', attackers: picks }); }
   if (a === 'end') return act({ type: 'endTurn' });
+  if (a === 'decide') { ui.sheetKey = null; return syncDecisionSheet(g, true); }
   if (a === 'block') {
+    const one = g.battle.attackers.find((x) => (ui.blocks[x] || []).length === 1 && isDouble(g, FOE, g.players[FOE].field.find((c) => c.uid === x)));
+    if (one) return toast('ダブルプレッシャーは2体以上でブロックしてください');
     const missing = g.battle.attackers.filter((x) => !(ui.blocks[x] || []).length).length;
     if (missing && !(await confirmSheet('ブロックしていないアタッカーがいます。このままだと負けます。確定しますか？', '確定する'))) return;
     const blocks = ui.blocks;
@@ -456,16 +466,14 @@ async function cpuLoop() {
   if (ui.busy || ui.online) return;
   ui.busy = true;
   try {
-    while (ui.game.phase !== 'over') {
-      const g = ui.game;
-      if (g.phase === 'block' && g.turn === ME) {
-        await sleep(CPU_DELAY);
-        step(FOE, { type: 'declareBlocks', blocks: cpuBlocks(g, FOE) });
-      } else if (g.turn === FOE && g.phase === 'main') {
-        await sleep(CPU_DELAY);
-        step(FOE, cpuMainAction(ui.game, FOE));
-      } else break;
+    while (ui.game.phase !== 'over' && ui.screen === 'game') {
+      const w = waitingFor(ui.game);
+      if (!(Array.isArray(w) ? w.includes(FOE) : w === FOE)) break;
+      await sleep(CPU_DELAY);
       if (ui.screen !== 'game') break;
+      const action = cpuAction(ui.game, FOE);
+      if (!action) break;
+      step(FOE, action);
     }
   } finally {
     ui.busy = false;
@@ -474,19 +482,97 @@ async function cpuLoop() {
 }
 
 function step(p, action) {
-  const r = applyAction(ui.game, p, action);
   const before = ui.game;
-  ui.game = r.ok ? r.state : applyAction(ui.game, p, { type: 'endTurn' }).state;
+  const r = applyAction(ui.game, p, action);
+  if (!r.ok) {
+    // 万一CPUが不正な行動を返しても止まらないようにする
+    const g = ui.game;
+    const fb = g.prompt ? { type: 'choose', picks: g.prompt.options.slice(0, g.prompt.min) } : g.phase === 'block' ? { type: 'declareBlocks', blocks: {} } : { type: 'endTurn' };
+    ui.game = applyAction(g, p, fb).state;
+  } else ui.game = r.state;
   announce(before, ui.game);
+  if (ui.game.phase !== 'block') { ui.focusAtk = null; ui.blocks = {}; ui.blocksPrev = {}; }
   render();
+}
+
+// ---------- 引き直し・能力の選択 ----------
+
+// 自分の判断が必要なときは、選択用のシートを出しておく
+function syncDecisionSheet(g, force = false) {
+  const mine = (g.phase === 'mulligan' && g.mulligan[ME] === null) || g.prompt?.p === ME;
+  if (!mine) {
+    if (ui.sheetKey) { ui.sheetKey = null; closeSheet(); }
+    return;
+  }
+  const key = JSON.stringify([g.phase, g.prompt, g.turnNo, g.log.length]);
+  if (!force && ui.sheetKey === key) return;
+  if (!force && ui.sheetDismissed === key) return;
+  ui.sheetKey = key;
+  if (g.phase === 'mulligan') return showMulligan(g);
+  showPrompt(g, key);
+}
+
+function showMulligan(g) {
+  const hand = g.players[ME].hand;
+  const s = openSheet(`<h3>最初の手札</h3>
+    <p class="sub-note">${g.first === ME ? 'あなたが先攻です' : 'あなたは後攻です'}。1回だけ、6枚すべてを山札に戻して引き直せます。</p>
+    <div class="grid pick-grid">${hand.map((c) => cardFace(c, { size: 's' })).join('')}</div>
+    <div class="sheet-actions row"><button class="btn ghost" data-m="1">引き直す</button><button class="btn primary" data-m="0">このまま始める</button></div>`, 'tall locked');
+  s.querySelectorAll('[data-m]').forEach((b) => b.onclick = () => { ui.sheetKey = null; closeSheet(); act({ type: 'mulligan', redo: b.dataset.m === '1' }); });
+}
+
+function optionCard(uid) {
+  const f = findOnBoard(ui.game, uid);
+  if (!f) return '';
+  const where = { field: '戦場', guardians: 'ガーディアン', mana: '魔力ゾーン', hand: '手札', grave: '墓地', deck: '山札' }[f.zone];
+  const side = f.p === ME ? '自分' : '相手';
+  const hidden = f.zone === 'guardians' || (f.zone === 'mana' && !f.inst.faceUp && f.p !== ME);
+  const face = hidden ? cardBack(uid, { size: 's', label: where }) : cardFace(f.inst, { size: 's', p: f.p });
+  return `<button class="opt" data-opt="${uid}">${face}<span class="opt-label">${side}の${where}</span></button>`;
+}
+
+function showPrompt(g, key) {
+  const pr = g.prompt;
+  const src = pr.src && findOnBoard(g, pr.src);
+  const head = src ? `<div class="prompt-src">${cardFace({ ...src.inst, tapped: false }, { size: 's', p: src.p })}<p>${esc(pr.title)}</p></div>` : `<p>${esc(pr.title)}</p>`;
+  if (pr.confirm) {
+    const s = openSheet(`<h3>能力の発動</h3>${head}<div class="sheet-actions row"><button class="btn ghost" data-c="0">使わない</button><button class="btn primary" data-c="1">使う</button></div>`, 'locked');
+    s.querySelectorAll('[data-c]').forEach((b) => b.onclick = () => { closeSheet(); act({ type: 'choose', picks: b.dataset.c === '1' ? ['yes'] : [] }); });
+    return;
+  }
+  const picks = new Set();
+  const s = openSheet(`<h3>${pr.min === 0 ? '能力の発動（任意）' : '選んでください'}</h3>${head}
+    <div class="grid pick-grid">${pr.options.map(optionCard).join('')}</div>
+    <div class="sheet-actions row">
+      ${pr.min === 0 ? '<button class="btn ghost" data-skip>使わない</button>' : ''}
+      <button class="btn ghost" data-peek>盤面を見る</button>
+      <button class="btn primary" data-ok disabled>決定</button>
+    </div>`, 'tall locked');
+  const ok = s.querySelector('[data-ok]');
+  const refresh = () => {
+    s.querySelectorAll('[data-opt]').forEach((b) => b.classList.toggle('on', picks.has(b.dataset.opt)));
+    ok.disabled = picks.size < Math.max(1, pr.min) || picks.size > pr.max;
+    ok.textContent = pr.max > 1 ? `決定（${picks.size}/${pr.max}）` : '決定';
+  };
+  s.querySelectorAll('[data-opt]').forEach((b) => b.onclick = () => {
+    const u = b.dataset.opt;
+    if (picks.has(u)) picks.delete(u);
+    else { if (pr.max === 1) picks.clear(); if (picks.size < pr.max) picks.add(u); }
+    vibrate(); refresh();
+  });
+  ok.onclick = () => { closeSheet(); act({ type: 'choose', picks: [...picks] }); };
+  const skip = s.querySelector('[data-skip]');
+  if (skip) skip.onclick = () => { closeSheet(); act({ type: 'choose', picks: [] }); };
+  s.querySelector('[data-peek]').onclick = () => { ui.sheetDismissed = key; ui.sheetKey = null; closeSheet(); };
 }
 
 // ---------- シート（下から出るパネル） ----------
 
 function openSheet(html, cls = '') {
   $sheet.innerHTML = `<div class="scrim"></div><div class="sheet ${cls}"><div class="grabber"></div>${html}</div>`;
-  requestAnimationFrame(() => $sheet.classList.add('open'));
-  $sheet.querySelector('.scrim').onclick = closeSheet;
+  void $sheet.offsetWidth; // 再計算させてから開くと、アニメーションが効く（rAFだと裏タブで止まる）
+  $sheet.classList.add('open');
+  if (!cls.includes('locked')) $sheet.querySelector('.scrim').onclick = closeSheet;
   return $sheet.querySelector('.sheet');
 }
 
@@ -518,7 +604,6 @@ function showHandCard(c) {
     closeSheet();
     const k = b.dataset.do;
     if (k === 'up' || k === 'down') return act({ type: 'placeMana', uid: c.uid, faceUp: k === 'up' });
-    if (d.target) { ui.mode = 'target'; ui.pending = c; return render(); }
     act({ type: 'play', uid: c.uid });
   });
 }
@@ -526,7 +611,7 @@ function showHandCard(c) {
 function conditions(d) {
   const rows = [];
   if (d.color && d.type !== 'maryoku') rows.push(`<span><i class="dot c-${d.color}"></i>${COLORS[d.color].name}のマリョクが必要</span>`);
-  if (d.type !== 'maryoku') rows.push(`<span>レベル ${d.level} 以上</span>`);
+  if (d.type !== 'maryoku') rows.push(`<span>レベル ${ui.game ? effectiveLevel(ui.game, ME, d) : d.level} 以上</span>`);
   if (d.type === 'mahou') rows.push(`<span>魔力ゾーンから ${d.cost} 枚を墓地へ</span>`);
   return rows.length ? `<div class="conds">${rows.join('')}</div>` : '';
 }
