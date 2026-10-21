@@ -184,8 +184,8 @@ export function stat(s, x, where = null) {
         if (!(a.zones || ['field']).includes(src.zone)) continue;
         if (src.inst.uid !== inst.uid && !active(s, src)) continue;
         const g = a.to(s, src, tgt);
-        if (g && !(st.lost && !g.types && g.setPower === undefined)) applyGrant(st, g);
-        else if (g && st.lost) applyGrant(st, { types: g.types, setPower: g.setPower });
+        if (g && !st.lost) applyGrant(st, g);
+        else if (g && st.lost) applyGrant(st, { types: g.types, setPower: g.setPower, ...(g.keep ? g : {}) });
       }
     }
     if (zone === 'field' && !st.lost) {
