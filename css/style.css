@@ -76,7 +76,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .side.mine { justify-content: flex-end; }
 .row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 6px 2px; min-height: 40px; align-items: center; }
 .row::-webkit-scrollbar { display: none; }
-.row.field { min-height: 98px; justify-content: center; }
+.row.field { min-height: 90px; justify-content: center; }
 .row.guardians { justify-content: center; }
 .empty { color: var(--muted); font-size: 12px; margin: auto; }
 .mana-row { display: flex; align-items: center; gap: 4px; min-height: 26px; flex-wrap: wrap; }
@@ -457,7 +457,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 /* ---------- ハイケイの束と墓地の山 ---------- */
 .field-wrap { display: grid; grid-template-columns: 62px minmax(0, 1fr) 62px; align-items: center; gap: 4px; }
 .field-wrap .row.field { min-width: 0; }
-.hk-stack, .grave-pile { position: relative; width: 60px; height: 98px; border-radius: 10px; padding: 0; }
+.hk-stack, .grave-pile { position: relative; width: 60px; height: 86px; border-radius: 10px; padding: 0; }
 .hk-stack.empty, .grave-pile.empty { border: 1.5px dashed rgba(255, 255, 255, .14); display: grid; place-items: center; font-size: 10px; color: var(--muted); }
 .hk-stack .slot { position: absolute; left: 1px; }
 .hk-stack .card { box-shadow: 0 -2px 6px rgba(0, 0, 0, .55); }
@@ -472,3 +472,22 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .seg-btn:disabled { opacity: .35; }
 .pile-grid { justify-content: flex-start; }
 .card .emblem.duo { font-size: 26px; letter-spacing: -.02em; margin-top: 22%; } .card.l .emblem.duo, .card.xl .emblem.duo { font-size: 54px; } .card.s .emblem.duo { font-size: 18px; }
+
+/* ブロックの枚数表示 */
+.row.guardians { flex-shrink: 0; padding-top: 10px; padding-bottom: 4px; }
+.badge.cnt { top: auto; bottom: 2px; left: 50%; right: auto; transform: translateX(-50%); width: auto; min-width: 30px; padding: 0 6px; border-radius: 10px; background: #2b3f63; border: 1.5px solid var(--blue); white-space: nowrap; font-size: 11px; }
+.badge.cnt.ok { background: var(--blue); }
+.hint b { color: var(--blue); font-size: 1.1em; }
+.hint small { color: var(--muted); font-size: 11px; }
+
+/* 縦が短い画面では盤面を詰めて、ガーディアンや番号が隠れないようにする */
+@media (max-height: 760px) {
+  .side { gap: 3px; padding: 2px 10px; }
+  .mana-row { min-height: 22px; }
+  .card.g { width: 40px; height: 54px; }
+  .row.guardians { padding-top: 8px; padding-bottom: 2px; min-height: 0; }
+  .row.field { min-height: 86px; padding: 2px; }
+  .hk-stack, .grave-pile { height: 84px; }
+  .hand { min-height: 128px; padding-top: 8px; }
+  .hand .card.m { width: 74px; height: 106px; }
+}
