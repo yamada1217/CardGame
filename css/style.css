@@ -209,3 +209,16 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 .result .sheet-actions { flex-direction: row; margin-top: 22px; }
 .actions .btn { white-space: nowrap; }
+
+/* ---------- オンライン ---------- */
+.name-input { width: 100%; height: 48px; border-radius: var(--radius); border: 1.5px solid var(--line); background: var(--panel); color: var(--text); font: inherit; font-size: 16px; font-weight: 700; padding: 0 16px; margin-bottom: 18px; outline: none; -webkit-user-select: text; user-select: text; }
+.name-input:focus { border-color: var(--gold); }
+.logo-crest.small { width: 64px; height: 64px; font-size: 34px; border-radius: 18px; margin-bottom: 0; }
+.room { text-align: center; position: relative; }
+.room-label { margin: 0; color: var(--muted); font-size: 13px; letter-spacing: .2em; }
+.room-code { margin: 6px 0 10px; font-family: var(--serif); font-weight: 800; font-size: 52px; letter-spacing: .25em; padding-left: .25em; color: var(--gold-2); }
+.room-help { margin: 0 0 12px; font-size: 14px; color: #e6dccd; line-height: 1.6; }
+.room-url { font-size: 12px; color: var(--muted); background: var(--panel); border-radius: 10px; padding: 10px 12px; word-break: break-all; margin-bottom: 16px; -webkit-user-select: all; user-select: all; }
+.wait-msg { display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--muted); margin: 0; }
+.waiting > .btn { flex: none; align-self: center; min-width: 160px; }
+.offline { font-size: 11px; font-weight: 700; color: #fff; background: var(--danger); padding: 2px 8px; border-radius: 999px; }
