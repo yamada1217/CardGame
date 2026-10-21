@@ -338,3 +338,62 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 @keyframes fx-lunge-down { 35% { transform: translateY(22px) scale(1.08); filter: drop-shadow(0 0 12px rgba(255, 140, 60, .95)); } 100% { transform: none; } }
 .chip.fx-charge, .fx-charge > .chip { animation: fx-charge .5s ease-out; }
 @keyframes fx-charge { 0% { transform: scale(1.8); filter: brightness(2); opacity: 0; } 100% { transform: none; } }
+
+/* ---------- レア度ごとの枠（N < C < R < SR < PSR） ---------- */
+.card:where(.r-C) { background: linear-gradient(160deg, #e9e4dc, color-mix(in srgb, var(--c) 45%, #8d857b) 45%, color-mix(in srgb, var(--c) 35%, #120e0b)); }
+.card:where(.r-R) { background: linear-gradient(150deg, #f2f9ff, #9cc4ee 30%, #4f79a8 60%, #d7ecff 85%, #34557e); box-shadow: 0 0 8px rgba(140, 195, 255, .5); }
+.card:where(.r-SR) { background: linear-gradient(150deg, #fff7d6, #f1c45e 28%, #9a6416 55%, #ffe39a 78%, #b07a22); box-shadow: 0 0 12px rgba(255, 200, 90, .65), 0 0 2px #fff3c4; }
+.card:where(.r-PSR) { background: linear-gradient(120deg, #ff6b9a, #ffd36b, #7dffb0, #6bd7ff, #b98cff, #ff6b9a) 0 0 / 300% 300%; box-shadow: 0 0 14px rgba(255, 140, 220, .7), 0 0 26px rgba(120, 200, 255, .45); animation: rb-border 4s linear infinite; }
+.card.r-PSR.can, .card.r-PSR.blocking { animation: rb-border 4s linear infinite, glow 1.4s ease-in-out infinite; }
+@keyframes rb-border { to { background-position: 300% 0; } }
+.card.r-R .name, .card.r-SR .name, .card.r-PSR .name { text-shadow: 0 0 6px rgba(255, 255, 255, .35); }
+/* 光の帯が走る */
+.card.r-SR .card-in::after, .card.r-PSR .card-in::after { content: ''; position: absolute; inset: -40% -60%; background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, .55) 50%, transparent 58%); transform: translateX(-70%); animation: shine 3.6s ease-in-out infinite; pointer-events: none; mix-blend-mode: soft-light; z-index: 2; }
+.card.r-PSR .card-in::after { background: linear-gradient(105deg, transparent 38%, rgba(255, 180, 240, .5) 46%, rgba(255, 255, 255, .8) 50%, rgba(150, 220, 255, .5) 54%, transparent 62%); animation-duration: 2.6s; mix-blend-mode: screen; }
+@keyframes shine { 0%, 45% { transform: translateX(-70%); } 85%, 100% { transform: translateX(70%); } }
+/* PSR はきらめく */
+.card.r-PSR .card-in::before { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; background:
+  radial-gradient(circle at 20% 25%, #fff 0 1px, transparent 2px), radial-gradient(circle at 78% 18%, #fff 0 1.2px, transparent 2.4px),
+  radial-gradient(circle at 65% 70%, #fff 0 1px, transparent 2px), radial-gradient(circle at 30% 80%, #fff 0 1.2px, transparent 2.4px);
+  animation: twinkle 1.8s ease-in-out infinite alternate; }
+@keyframes twinkle { from { opacity: .15; } to { opacity: 1; } }
+.zoom-rarity { background: linear-gradient(120deg, var(--gold-2), var(--gold)); color: #2a1d08; }
+
+/* ---------- 派手なエフェクト ---------- */
+.fx-ring { width: 220%; }
+.fx-spark { position: fixed; width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); border-radius: 50%; box-shadow: 0 0 8px currentColor, 0 0 4px #fff; opacity: 0; animation: spark .8s cubic-bezier(.15, .8, .3, 1) forwards; }
+@keyframes spark { 0% { opacity: 1; transform: translate(0, 0) scale(1.4); } 70% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.2); } }
+.fx-flash { position: fixed; inset: 0; animation: flash .55s ease-out forwards; }
+.fx-flash.red { background: radial-gradient(circle, rgba(255, 120, 60, .35), rgba(255, 40, 20, .15) 60%, transparent); }
+.fx-flash.violet { background: radial-gradient(circle, rgba(200, 160, 255, .45), rgba(120, 60, 255, .18) 60%, transparent); }
+@keyframes flash { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
+.fx-cross { position: fixed; }
+.fx-cross::before, .fx-cross::after { content: ''; position: absolute; left: 50%; top: 50%; width: 170%; height: 4px; border-radius: 4px; background: linear-gradient(90deg, transparent, #fff, #ff7a3d, transparent); box-shadow: 0 0 12px #ff6a2b; transform: translate(-50%, -50%) rotate(45deg) scaleX(0); animation: slash .35s ease-out forwards; }
+.fx-cross::after { transform: translate(-50%, -50%) rotate(-45deg) scaleX(0); animation-delay: .1s; }
+@keyframes slash { 0% { transform: translate(-50%, -50%) rotate(var(--r, 45deg)) scaleX(0); opacity: 1; } 60% { opacity: 1; } 100% { transform: translate(-50%, -50%) rotate(var(--r, 45deg)) scaleX(1); opacity: 0; } }
+.fx-cross::after { --r: -45deg; }
+.fx-shield { position: absolute; inset: -14%; border-radius: 45% 45% 50% 50% / 35% 35% 65% 65%; border: 3px solid #bfe2ff; background: radial-gradient(circle at 50% 35%, rgba(190, 228, 255, .55), rgba(60, 140, 255, .25) 60%, transparent 75%); box-shadow: 0 0 18px #5aa8ff, inset 0 0 14px rgba(255, 255, 255, .6); animation: shield .7s cubic-bezier(.2, .8, .2, 1) forwards; }
+@keyframes shield { 0% { transform: scale(.4); opacity: 0; } 30% { transform: scale(1.1); opacity: 1; } 55% { transform: scale(.95); } 100% { transform: scale(1.2); opacity: 0; } }
+.fx-pillar { position: fixed; }
+.fx-pillar::before { content: ''; position: absolute; left: 10%; right: 10%; bottom: 20%; height: 260%; background: linear-gradient(0deg, rgba(255, 240, 180, .9), rgba(255, 220, 120, .4) 40%, transparent); filter: blur(3px); transform-origin: bottom; animation: pillar .8s ease-out forwards; }
+@keyframes pillar { 0% { transform: scaleY(0) scaleX(.4); opacity: 1; } 40% { transform: scaleY(1) scaleX(1); opacity: 1; } 100% { transform: scaleY(1) scaleX(.2); opacity: 0; } }
+.fx-quake { position: fixed; }
+.fx-quake::before { content: ''; position: absolute; left: 50%; bottom: -6px; width: 260%; height: 40px; border-radius: 50%; border: 3px solid rgba(140, 240, 170, .9); box-shadow: 0 0 16px rgba(120, 230, 150, .8); transform: translateX(-50%) scale(.2); opacity: 0; animation: quake .7s ease-out forwards; animation-delay: inherit; }
+@keyframes quake { 0% { transform: translateX(-50%) scale(.2); opacity: 1; } 100% { transform: translateX(-50%) scale(1.2); opacity: 0; } }
+.fx-streak { position: fixed; }
+.fx-streak::before { content: ''; position: absolute; left: 30%; right: 30%; height: 220%; border-radius: 50%; background: linear-gradient(var(--dir, 0deg), rgba(255, 150, 60, .9), rgba(255, 220, 160, .5) 40%, transparent); filter: blur(2px); animation: streak .55s ease-out forwards; }
+.fx-streak.up::before { bottom: 50%; --dir: 0deg; transform-origin: bottom; }
+.fx-streak.down::before { top: 50%; --dir: 180deg; transform-origin: top; }
+@keyframes streak { 0% { transform: scaleY(0); opacity: 1; } 50% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
+.slot.fx-attack-up { animation: fx-lunge-up .6s cubic-bezier(.3, 1.4, .5, 1); }
+.slot.fx-attack-down { animation: fx-lunge-down .6s cubic-bezier(.3, 1.4, .5, 1); }
+@keyframes fx-lunge-up { 30% { transform: translateY(-34px) scale(1.15); filter: drop-shadow(0 0 16px rgba(255, 140, 60, 1)) brightness(1.3); } 100% { transform: none; } }
+@keyframes fx-lunge-down { 30% { transform: translateY(34px) scale(1.15); filter: drop-shadow(0 0 16px rgba(255, 140, 60, 1)) brightness(1.3); } 100% { transform: none; } }
+.fx-circle { position: absolute; left: 50%; top: 50%; width: min(78vmin, 420px); aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); background: repeating-conic-gradient(from 0deg, rgba(200, 170, 255, .7) 0 4deg, transparent 4deg 18deg); -webkit-mask: radial-gradient(circle, transparent 54%, #000 55% 60%, transparent 61% 68%, #000 69% 71%, transparent 72%); mask: radial-gradient(circle, transparent 54%, #000 55% 60%, transparent 61% 68%, #000 69% 71%, transparent 72%); filter: drop-shadow(0 0 10px #a07bff); animation: circle 1.3s ease-out forwards; }
+@keyframes circle { 0% { transform: translate(-50%, -50%) scale(.3) rotate(0); opacity: 0; } 25% { opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1.1) rotate(160deg); opacity: 0; } }
+.fx-magic .fx-wave.w2 { animation-delay: .45s; border-color: rgba(255, 255, 255, .8); }
+.game.fx-shake { animation: shake .35s linear; }
+.game.fx-shake-hard { animation: shake-hard .45s linear; }
+@keyframes shake { 25% { transform: translate(-3px, 1px); } 50% { transform: translate(3px, -1px); } 75% { transform: translate(-2px, 0); } }
+@keyframes shake-hard { 15% { transform: translate(-7px, 3px); } 30% { transform: translate(6px, -4px); } 45% { transform: translate(-5px, 2px); } 60% { transform: translate(4px, -2px); } 80% { transform: translate(-2px, 1px); } }
+@media (prefers-reduced-motion: reduce) { #fx-layer { display: none; } }

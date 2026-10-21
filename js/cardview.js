@@ -37,7 +37,7 @@ export function cardFace(inst, { size = 'm', game = null, p = 0, role = null, ex
   const lv = game && !card && d.type === 'haikei' ? effectiveLevel(game, p, d) : d.level;
   const showText = size === 'l' || size === 'xl';
   return `
-    <div class="card ${size} c-${color} t-${d.type}${inst.tapped ? ' tapped' : ''}${enter} ${extra}" data-uid="${inst.uid || ''}" data-id="${d.id}">
+    <div class="card ${size} c-${color} r-${esc(d.rarity || 'N')} t-${d.type}${inst.tapped ? ' tapped' : ''}${enter} ${extra}" data-uid="${inst.uid || ''}" data-id="${d.id}">
       <div class="card-in">
         <div class="lv">${lv}</div>
         ${d.type === 'mahou' ? `<div class="cost" title="魔力コスト">${d.cost}</div>` : ''}
