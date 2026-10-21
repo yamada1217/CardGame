@@ -1,6 +1,6 @@
 // オフラインでも開けるように、アプリ本体をキャッシュする
-const CACHE = 'ijinden-v4';
-const ASSETS = ['./', 'index.html', 'css/style.css', 'js/app.js', 'js/engine.js', 'js/cards.js', 'js/ai.js', 'js/online.js', 'js/firebase-config.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png'];
+const CACHE = 'ijinden-v5';
+const ASSETS = ['./', 'index.html', 'css/style.css', 'js/app.js', 'js/engine.js', 'js/cards.js', 'js/ai.js', 'js/cardview.js', 'js/zoom.js', 'js/online.js', 'js/firebase-config.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
