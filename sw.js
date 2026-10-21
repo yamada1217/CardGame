@@ -1,5 +1,5 @@
 // オフラインでも開けるように、アプリ本体をキャッシュする
-const CACHE = 'ijinden-v2';
+const CACHE = 'ijinden-v3';
 const ASSETS = ['./', 'index.html', 'css/style.css', 'js/app.js', 'js/engine.js', 'js/cards.js', 'js/ai.js', 'js/online.js', 'js/firebase-config.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png'];
 
 self.addEventListener('install', (e) => {

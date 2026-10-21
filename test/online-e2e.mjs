@@ -16,18 +16,19 @@ const code = (await A.textContent('.room-code')).trim();
 await A.waitForTimeout(500);
 await B.goto(`http://localhost:8080/?room=${code}&backend=local`);
 await B.fill('#name', 'ともだち');
-await B.click('[data-deck="wisdom"]');
+await B.click('[data-deck="B01"]');
 await B.click('#join');
 await A.waitForSelector('.game'); await B.waitForSelector('.game');
 await A.waitForTimeout(500);
 const drive = (p) => p.evaluate(async () => {
   const { ui, act, seat } = window.__ijinden;
   const ai = await import('/js/ai.js');
-  const g = ui.game, { ME } = seat();
+  const g = ui.game;
   if (g.phase === 'over') return 'over';
-  if (g.phase === 'block' && g.turn !== ME) { act({ type: 'declareBlocks', blocks: ai.cpuBlocks(g, ME) }); return 'blk'; }
-  if (g.phase === 'main' && g.turn === ME) { act(ai.cpuMainAction(g, ME)); return 'act'; }
-  return 'wait';
+  const a = ai.cpuAction(g, seat().ME);
+  if (!a) return 'wait';
+  act(a);
+  return 'act';
 });
 let steps = 0, res;
 while (steps++ < 3000) {
