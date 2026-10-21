@@ -11,13 +11,15 @@ await A.evaluate(() => localStorage.clear());
 await A.reload();
 await A.fill('#name', 'ひろむ');
 await A.click('#start-online');
+await A.click('[data-go="start"]');
 await A.waitForSelector('.room-code');
 const code = (await A.textContent('.room-code')).trim();
 await A.waitForTimeout(500);
 await B.goto(`http://localhost:8080/?room=${code}&backend=local`);
 await B.fill('#name', 'ともだち');
-await B.click('[data-deck="B01"]');
 await B.click('#join');
+await B.click('[data-deck="B01"]');
+await B.click('[data-go="start"]');
 await A.waitForSelector('.game'); await B.waitForSelector('.game');
 await A.waitForTimeout(500);
 const drive = (p) => p.evaluate(async () => {
