@@ -179,7 +179,7 @@ function renderEditor() {
         </div>
         <p class="b-hint">タップでデッキに追加・長押しで詳細　<span>${listCount}種</span></p>
       </div>
-        <div class="b-grid" id="b-grid">${catalog.filter(matches).map(tileHtml).join('') || '<p class="b-empty">条件に合うカードがありません</p>'}</div>
+        <div class="b-grid" id="b-grid"></div>
       ` : `
         <p class="b-hint">名前をタップで詳細・＋−で枚数を変更</p>
       </div>
@@ -187,6 +187,8 @@ function renderEditor() {
       `}
       </div>
     </main>`;
+  const grid = document.getElementById('b-grid');
+  if (grid) fillGrid(grid, catalog.filter(matches));
   bindEditor();
 }
 
@@ -304,11 +306,68 @@ function rerenderList() {
   document.getElementById('b-body').scrollTop = top;
 }
 
+// 一覧は画面に見えている所だけを描く（576枚を一度に描くと重い）
+// 4行ずつの塊にして、見えた塊から描き、手が空いたときに残りを先回りして描いておく
+const GAP = 8, PAD = 12, BLOCK = 4;
+const vg = { list: [], cols: 1, rowH: 0, tileH: 0, blocks: new Map(), raf: 0 };
+function fillGrid(grid, list) {
+  vg.list = list; vg.blocks = new Map();
+  if (!list.length) { grid.classList.remove('virtual'); grid.style.height = ''; grid.innerHTML = '<p class="b-empty">条件に合うカードがありません</p>'; return; }
+  const w = grid.clientWidth - PAD * 2;
+  vg.cols = Math.max(1, Math.floor((w + GAP) / (76 + GAP)));
+  vg.tileH = ((w - GAP * (vg.cols - 1)) / vg.cols) * 7 / 5;
+  vg.rowH = vg.tileH + GAP;
+  grid.classList.add('virtual');
+  grid.style.height = `${Math.ceil(list.length / vg.cols) * vg.rowH + 28}px`;
+  grid.innerHTML = '';
+  const body = document.getElementById('b-body');
+  if (body) body.onscroll = () => { if (!vg.raf) vg.raf = requestAnimationFrame(() => { vg.raf = 0; drawBlocks(grid); }); };
+  drawBlocks(grid);
+}
+
+// 画面の向きや幅が変わったら列数を計算し直す
+window.addEventListener('resize', () => { clearTimeout(vg.rt); vg.rt = setTimeout(() => { if (document.getElementById('b-grid')?.classList.contains('virtual')) refreshGrid(); }, 200); });
+
+function drawBlocks(grid) {
+  const body = document.getElementById('b-body');
+  if (!body || !grid.isConnected || !vg.list.length) return;
+  const y = body.getBoundingClientRect().top - grid.getBoundingClientRect().top - 4;
+  const per = BLOCK * vg.cols, span = BLOCK * vg.rowH;
+  const last = Math.ceil(vg.list.length / per) - 1;
+  const from = Math.max(0, Math.floor(y / span) - 1), to = Math.min(last, Math.floor((y + body.clientHeight) / span) + 1);
+  for (let b = from; b <= to; b++) drawBlock(grid, b);
+  clearTimeout(vg.idle);
+  vg.idle = setTimeout(() => prefetch(grid, vg.list), 300);
+}
+
+function drawBlock(grid, b) {
+  if (vg.blocks.has(b)) return;
+  const per = BLOCK * vg.cols;
+  const el = document.createElement('div');
+  el.className = 'b-part';
+  el.style.cssText = `top:${4 + b * BLOCK * vg.rowH}px;grid-template-columns:repeat(${vg.cols},1fr);grid-auto-rows:${vg.tileH}px`;
+  el.innerHTML = vg.list.slice(b * per, (b + 1) * per).map(tileHtml).join('');
+  grid.appendChild(el);
+  vg.blocks.set(b, el);
+}
+
+// 描いていない塊を1つずつ、操作の合間に描いておく
+function prefetch(grid, list) {
+  if (list !== vg.list || !grid.isConnected) return;
+  const last = Math.ceil(list.length / (BLOCK * vg.cols)) - 1;
+  let b = 0;
+  while (b <= last && vg.blocks.has(b)) b++;
+  if (b > last) return;
+  drawBlock(grid, b);
+  const idle = window.requestIdleCallback || ((f) => setTimeout(f, 60));
+  idle(() => prefetch(grid, list));
+}
+
 function refreshGrid() {
   const grid = document.getElementById('b-grid');
   if (!grid) return;
   const list = catalog.filter(matches);
-  grid.innerHTML = list.map(tileHtml).join('') || '<p class="b-empty">条件に合うカードがありません</p>';
+  fillGrid(grid, list);
   const hint = ctx.app.querySelector('.b-hint span');
   if (hint) hint.textContent = `${list.length}種`;
 }
