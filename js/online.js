@@ -12,20 +12,22 @@ async function firebaseBackend() {
   const db = await import(SDK('database'));
   const app = initializeApp(FIREBASE_CONFIG);
   // 匿名ログイン。ルールで「ログインした人だけ書ける」にして、いたずらを防ぐ
+  let uid = null;
   try {
     const auth = await import(SDK('auth'));
-    await auth.signInAnonymously(auth.getAuth(app));
+    uid = (await auth.signInAnonymously(auth.getAuth(app))).user.uid;
   } catch (e) {
     console.warn('匿名ログインに失敗しました', e);
   }
   const d = db.getDatabase(app);
   const r = (path) => db.ref(d, path);
   return {
+    uid,
     get: async (path) => (await db.get(r(path))).val(),
     set: (path, v) => db.set(r(path), v),
     update: (path, v) => db.update(r(path), v),
     push: (path, v) => db.push(r(path), v),
-    onValue: (path, cb) => db.onValue(r(path), (s) => cb(s.val())),
+    onValue: (path, cb) => db.onValue(r(path), (s) => cb(s.val()), () => cb(null)), // 解除する関数を返す
     onChildAdded: (path, cb) => db.onChildAdded(r(path), (s) => cb(s.val(), s.key)),
     onDisconnectSet: (path, v) => db.onDisconnect(r(path)).set(v),
     serverTime: () => db.serverTimestamp(),
@@ -46,7 +48,7 @@ function localBackend() {
     for (const k of Object.keys(localStorage)) if (k.startsWith(PRE + p + '/')) localStorage.removeItem(k);
   };
   // 1回の書き込みは1つのキーにまとめる（途中の状態を読まないように）
-  const write = (p, v) => localStorage.setItem(PRE + norm(p), JSON.stringify(v ?? null));
+  const write = (p, v) => (v == null ? localStorage.removeItem(PRE + norm(p)) : localStorage.setItem(PRE + norm(p), JSON.stringify(v)));
   const dig = (o, ks) => ks.reduce((x, k) => (x == null ? undefined : x[k]), o);
   const read = (p) => {
     const base = norm(p);
@@ -70,6 +72,7 @@ function localBackend() {
   };
   let seq = 0;
   return {
+    uid: clientId(),
     get: async (p) => read(p),
     set: async (p, v) => { clear(norm(p)); write(p, JSON.parse(JSON.stringify(v ?? null))); changed(); },
     update: async (p, v) => { for (const [k, x] of Object.entries(v)) { clear(norm(`${p}/${k}`)); write(`${p}/${k}`, x); } changed(); },
@@ -78,6 +81,7 @@ function localBackend() {
       let last;
       const l = () => { const v = JSON.stringify(read(p)); if (v !== last) { last = v; cb(JSON.parse(v)); } };
       listeners.add(l); l();
+      return () => listeners.delete(l);
     },
     onChildAdded: (p, cb) => {
       const seen = new Set();
@@ -95,7 +99,7 @@ function localBackend() {
 export const onlineAvailable = () => !!FIREBASE_CONFIG || new URLSearchParams(location.search).get('backend') === 'local';
 
 let backendPromise = null;
-function backend() {
+export function backend() {
   const local = new URLSearchParams(location.search).get('backend') === 'local' || !FIREBASE_CONFIG;
   // 失敗したら次に押したとき作り直す
   backendPromise ??= local ? Promise.resolve(localBackend()) : firebaseBackend().catch((e) => { backendPromise = null; throw e; });

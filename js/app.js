@@ -9,6 +9,7 @@ import { onlineAvailable, hostRoom, joinRoom, roomUrl, savedSession } from './on
 import { usableDecks, deckForMatch, sanitizeDeck, deckColors, expand } from './decks.js';
 import { CPU_DECKS, resolveDeck } from './cpu-decks.js';
 import { openDeckList } from './builder.js';
+import { myProfile, sendRequest, accept, decline, unfriend, invite, clearInvite, watchFriends, watchInvites, formatCode } from './friends.js';
 
 const $app = document.getElementById('app');
 const $sheet = document.getElementById('sheet-root');
@@ -100,10 +101,12 @@ function renderTitle() {
         <input class="name-input" id="name" maxlength="12" placeholder="プレイヤー" value="${esc(ui.name)}" autocomplete="nickname">
       </section>
       ${join ? `<button class="invite" id="join"><span class="invite-label">招待されています</span><b>部屋 ${esc(join)} に参加する</b><span class="chev">›</span></button>` : ''}
+      ${!join && ui.invite ? `<button class="invite" id="fjoin"><span class="invite-label">${esc(ui.invite.name)}さんから対戦の誘い</span><b>部屋 ${esc(ui.invite.room)} に参加する</b><span class="chev">›</span></button>` : ''}
       <nav class="modes">
         <button class="mode" id="start-cpu"><span class="mode-icon cpu">⚔</span><span class="mode-text"><b>CPU対戦</b><small>ひとりで練習</small></span><span class="chev">›</span></button>
         <button class="mode${canOnline ? '' : ' soon'}" id="start-online"><span class="mode-icon friend">⇄</span><span class="mode-text"><b>フレンド対戦</b><small>${canOnline ? 'リンクを送って1対1' : '準備中'}</small></span><span class="chev">›</span></button>
         <button class="mode" id="open-builder"><span class="mode-icon build">▤</span><span class="mode-text"><b>デッキ構築</b><small>自分だけのデッキを作る</small></span><span class="chev">›</span></button>
+        <button class="mode${canOnline ? '' : ' soon'}" id="open-friends"><span class="mode-icon pal">☺</span><span class="mode-text"><b>フレンド登録</b><small>${canOnline ? 'コードで登録して対戦に誘う' : '準備中'}</small></span><span class="chev">›</span></button>
       </nav>
       <p class="fine">ルールは公式ルール・Q&amp;Aにもとづいています。</p>
     </main>`;
@@ -113,8 +116,90 @@ function renderTitle() {
   document.getElementById('start-cpu').onclick = () => pickDeck('CPU対戦', pickLevel);
   document.getElementById('start-online').onclick = () => (canOnline ? pickDeck('フレンド対戦', startHost) : toast('オンライン対戦はもうすぐ使えるようになります'));
   document.getElementById('open-builder').onclick = openBuilder;
+  document.getElementById('open-friends').onclick = () => (canOnline ? openFriends() : toast('オンライン機能はもうすぐ使えるようになります'));
   const jb = document.getElementById('join');
   if (jb) jb.onclick = () => pickDeck(`部屋 ${join} に参加`, () => startJoin(join));
+  const fj = document.getElementById('fjoin');
+  if (fj) fj.onclick = () => {
+    const inv = ui.invite;
+    pickDeck(`${inv.name}さんの部屋に参加`, () => { ui.invite = null; clearInvite(inv.from); startJoin(inv.room); });
+  };
+}
+
+// ---------- フレンド ----------
+
+let friendsOff = null;
+async function openFriends() {
+  vibrate();
+  const s = openSheet('<h3>フレンド登録</h3><div class="friends"><p class="fine">読み込み中…</p></div>', 'tall friends-sheet');
+  const box = s.querySelector('.friends');
+  let prof;
+  try {
+    prof = await myProfile(myName());
+  } catch (e) {
+    console.warn(e);
+    box.innerHTML = '<p class="fine">フレンド機能につなげませんでした。通信状態を確認してください。<br><small>（サーバーの設定が終わっていない場合も、この表示になります）</small></p>';
+    return;
+  }
+  store('ijinden.friendsOn', '1');
+  startInviteWatch();
+  box.innerHTML = `
+    <section class="f-me">
+      <p class="group-label">あなたのフレンドコード</p>
+      <div class="f-code"><b>${formatCode(prof.code)}</b><button class="btn ghost small" data-f="copy">コピー</button></div>
+      <p class="fine">コードはこの端末（ブラウザ）に結びついています。端末やブラウザを変えたり、データを消したりすると、別のコードになります。</p>
+    </section>
+    <section class="f-add">
+      <p class="group-label">相手のコードで申請</p>
+      <div class="search-row"><input class="name-input" id="f-code" maxlength="9" placeholder="例 ABCD-EFGH" autocomplete="off" autocapitalize="characters"><button class="btn primary small" data-f="send">申請</button></div>
+    </section>
+    <section class="f-req"></section>
+    <section class="f-list"></section>`;
+  box.querySelector('[data-f="copy"]').onclick = async () => {
+    try { await navigator.clipboard.writeText(formatCode(prof.code)); toast('コピーしました'); } catch { toast(formatCode(prof.code)); }
+  };
+  const input = box.querySelector('#f-code');
+  box.querySelector('[data-f="send"]').onclick = async () => {
+    try {
+      const r = await sendRequest(input.value, myName());
+      input.value = '';
+      toast(r === 'accepted' ? 'フレンドになりました' : '申請を送りました。相手が承認するとフレンドになります');
+    } catch (e) { toast(e.message || '申請できませんでした'); }
+  };
+  friendsOff?.();
+  friendsOff = watchFriends(({ friends, requests }) => {
+    if (!s.isConnected) { friendsOff?.(); friendsOff = null; return; }
+    s.querySelector('.f-req').innerHTML = requests.length ? `<p class="group-label">届いた申請</p>${requests.map((r) => `
+      <div class="f-row"><span class="f-name">${esc(r.name)}<small>${formatCode(r.code)}</small></span>
+        <button class="btn ghost small" data-no="${esc(r.uid)}">拒否</button><button class="btn primary small" data-yes="${esc(r.uid)}">承認</button></div>`).join('')}` : '';
+    s.querySelector('.f-list').innerHTML = `<p class="group-label">フレンド ${friends.length}人</p>${friends.map((f) => `
+      <div class="f-row"><i class="f-dot ${f.online ? 'on' : ''}" title="${f.online ? 'オンライン' : 'オフライン'}"></i><span class="f-name">${esc(f.name)}<small>${f.online ? 'オンライン' : 'オフライン'}</small></span>
+        <button class="icon-btn f-del" data-del="${esc(f.uid)}" aria-label="フレンドから外す">×</button>
+        <button class="btn primary small" data-inv="${esc(f.uid)}" ${f.online ? '' : 'disabled'}>対戦に誘う</button></div>`).join('') || '<p class="fine">まだフレンドがいません。コードを教え合って申請しましょう。</p>'}`;
+    s.querySelectorAll('[data-yes]').forEach((b) => b.onclick = () => accept(b.dataset.yes).then(() => toast('フレンドになりました')).catch(() => toast('承認できませんでした')));
+    s.querySelectorAll('[data-no]').forEach((b) => b.onclick = () => decline(b.dataset.no));
+    s.querySelectorAll('[data-del]').forEach((b) => b.onclick = () => {
+      const f = friends.find((x) => x.uid === b.dataset.del);
+      confirmSheet(`${f?.name || 'この人'}をフレンドから外しますか？`, () => { unfriend(b.dataset.del); openFriends(); });
+    });
+    s.querySelectorAll('[data-inv]').forEach((b) => b.onclick = () => {
+      const f = friends.find((x) => x.uid === b.dataset.inv);
+      friendsOff?.(); friendsOff = null;
+      pickDeck(`${f.name}さんと対戦`, () => startHost((room) => invite(f.uid, room, myName()).then(() => toast(`${f.name}さんに誘いを送りました`)).catch(() => toast('誘いを送れませんでした'))));
+    });
+  });
+}
+
+// 対戦の誘いを見張る（フレンド機能を一度でも使った端末だけ）
+let inviteOff = null;
+function startInviteWatch() {
+  if (inviteOff) return;
+  inviteOff = watchInvites((inv) => {
+    if (ui.invite?.from === inv.from && ui.invite.room === inv.room) return;
+    ui.invite = inv;
+    sfx('turn');
+    if (ui.screen === 'title') { if ($sheet.querySelector('.friends-sheet')) closeSheet(); render(); toast(`${inv.name}さんから対戦の誘いが届きました`); } else toast(`${inv.name}さんから対戦の誘いが届きました（タイトル画面から参加できます）`);
+  });
 }
 
 // 対戦の前に使うデッキを選ぶ
@@ -265,11 +350,12 @@ const onlineHandlers = {
   },
 };
 
-async function startHost() {
+async function startHost(onRoom) {
   leaveOnline();
   ui.screen = 'waiting'; ui.waiting = { code: null }; render();
   try {
     ui.online = await hostRoom({ name: myName(), deck: myDeckForMatch() }, onlineHandlers);
+    if (typeof onRoom === 'function') onRoom(ui.online.code);
   } catch (e) {
     console.warn(e);
     toast('部屋を作れませんでした。通信状態を確認して、もう一度お試しください');
@@ -872,6 +958,9 @@ document.addEventListener('click', (e) => {
   if (!t || t.id === 'sound' || t.dataset.m === 'sound') return;
   sfx(t.classList.contains('card') || t.classList.contains('opt') ? 'card' : 'tap');
 }, true);
+
+// フレンド機能を使ったことがあれば、対戦の誘いを受け取れるようにしておく
+if (load('ijinden.friendsOn') && onlineAvailable()) myProfile(myName()).then(startInviteWatch).catch(() => {});
 
 // 対戦中に再読み込みしても、同じ部屋に戻る
 try {

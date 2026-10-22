@@ -6,7 +6,9 @@
       "$code": {
         ".read": "auth != null",
         ".validate": "$code.matches(/^[A-Z2-9]{5}$/)",
-        "created": { ".write": "auth != null && !data.exists()" },
+        "created": {
+          ".write": "auth != null && !data.exists()"
+        },
         "host": {
           ".write": "auth != null && !data.exists()",
           ".validate": "newData.hasChildren(['name', 'deck', 'cid']) && newData.child('name').isString() && newData.child('name').val().length <= 12"
@@ -32,6 +34,50 @@
               ".validate": "newData.hasChildren(['p', 'type']) && (newData.child('p').val() === 0 || newData.child('p').val() === 1)"
             }
           }
+        }
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['name','code']) && newData.child('name').isString() && newData.child('name').val().length <= 12 && newData.child('code').isString() && newData.child('code').val().matches(/^[A-Z2-9]{8}$/)",
+        "online": {
+          ".validate": "newData.isBoolean()"
+        }
+      }
+    },
+    "codes": {
+      "$code": {
+        ".read": "auth != null",
+        ".write": "auth != null && !data.exists() && newData.val() === auth.uid",
+        ".validate": "$code.matches(/^[A-Z2-9]{8}$/)"
+      }
+    },
+    "requests": {
+      "$to": {
+        ".read": "auth != null && auth.uid === $to",
+        "$from": {
+          ".write": "auth != null && (auth.uid === $from || (auth.uid === $to && !newData.exists()))",
+          ".validate": "newData.hasChildren(['name','code']) && newData.child('name').isString() && newData.child('name').val().length <= 12"
+        }
+      }
+    },
+    "friends": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$f": {
+          ".write": "auth != null && (auth.uid === $uid || (auth.uid === $f && (!newData.exists() || root.child('requests').child($f).child($uid).exists())))",
+          ".validate": "newData.hasChildren(['since'])"
+        }
+      }
+    },
+    "invites": {
+      "$to": {
+        ".read": "auth != null && auth.uid === $to",
+        "$from": {
+          ".write": "auth != null && ((auth.uid === $from && root.child('friends').child($to).child($from).exists()) || (auth.uid === $to && !newData.exists()))",
+          ".validate": "newData.hasChildren(['name','room','at']) && newData.child('room').isString() && newData.child('room').val().matches(/^[A-Z2-9]{5}$/)"
         }
       }
     }
