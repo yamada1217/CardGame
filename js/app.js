@@ -3,7 +3,7 @@ import { createGame, applyAction, def, checkPlay, canAttackWith, canBlockWith, c
 import { cpuAction, CPU_LEVELS } from './ai.js';
 import { cardFace as viewCardFace, cardBack, esc } from './cardview.js';
 import { zoomCard, closeZoom } from './zoom.js';
-import { planFx, runFx } from './fx.js';
+import { planFx, runFx, fxWait } from './fx.js';
 import { sfx, isMuted, setMuted, unlockAudio } from './sfx.js';
 import { onlineAvailable, hostRoom, joinRoom, roomUrl, savedSession } from './online.js';
 import { usableDecks, deckForMatch, sanitizeDeck, deckColors, expand } from './decks.js';
@@ -688,7 +688,8 @@ function planAll(before, after, p, action) {
 function announce(before, after) {
   const fresh = after.log.slice(before.log.length - (before.log.length >= 200 ? 1 : 0));
   const key = fresh.reverse().find((l) => /破壊|通った|勝利|アタック/.test(l.text));
-  if (key) toast(key.text);
+  // バトル演出の途中で結果を言わないよう、演出が終わってから出す
+  if (key) setTimeout(() => fxWait().then(() => toast(key.text)), 0);
 }
 
 async function cpuLoop() {
@@ -699,6 +700,7 @@ async function cpuLoop() {
       const w = waitingFor(ui.game);
       if (!(Array.isArray(w) ? w.includes(FOE) : w === FOE)) break;
       await sleep(CPU_DELAY);
+      await fxWait();
       if (ui.screen !== 'game') break;
       const action = cpuAction(ui.game, FOE, ui.cpuLevel);
       if (!action) break;
