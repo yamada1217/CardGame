@@ -864,15 +864,15 @@ function showHandCard(c) {
 function conditionText(d) {
   if (d.type === 'maryoku') return '';
   const parts = [];
-  if (d.color) parts.push(`${COLORS[d.color].name}の表向きマリョク`);
-  parts.push(`レベル${effectiveLevel(ui.game, ME, d)}以上`);
+  if (d.color) parts.push(`${COLORS[d.color].name}の表向きマリョクが1枚以上`);
+  parts.push(`魔力ゾーンのレベル合計${effectiveLevel(ui.game, ME, d)}以上（裏向きも1ずつ数える）`);
   if (d.type === 'mahou') parts.push(`魔力ゾーンから${d.cost}枚を墓地へ`);
   return `使う条件：${parts.join('・')}`;
 }
 
 function conditions(d) {
   const rows = [];
-  if (d.color && d.type !== 'maryoku') rows.push(`<span><i class="dot c-${d.color}"></i>${COLORS[d.color].name}のマリョクが必要</span>`);
+  if (d.color && d.type !== 'maryoku') rows.push(`<span><i class="dot c-${d.color}"></i>${COLORS[d.color].name}の表向きマリョク1枚以上</span>`);
   if (d.type !== 'maryoku') rows.push(`<span>レベル ${ui.game ? effectiveLevel(ui.game, ME, d) : d.level} 以上</span>`);
   if (d.type === 'mahou') rows.push(`<span>魔力ゾーンから ${d.cost} 枚を墓地へ</span>`);
   return rows.length ? `<div class="conds">${rows.join('')}</div>` : '';
@@ -928,7 +928,7 @@ function showRules() {
   openSheet(`<h3>ルールのおさらい</h3><div class="rules">
     <p><b>勝ち方</b>：アタックして、相手がブロックできないアタッカーを通せば勝ち。山札切れでも負け。</p>
     <p><b>1ターンにできること</b>：マリョク配置1回・イジン召喚1回・バトル1回。ハイケイとマホウは条件を満たせば何枚でも。</p>
-    <p><b>使う条件</b>：同じ色の表向きマリョクがあり、魔力ゾーンのレベル合計（裏向きは1）がカードのレベル以上。</p>
+    <p><b>使う条件</b>：同じ色の表向きマリョクが魔力ゾーンに1枚以上あり、「表向きマリョクのレベル合計＋裏向きカードの枚数」がカードのレベル以上。色さえ1枚表向きなら、残りは裏向きでもレベルに数えます。</p>
     <p><b>ガーディアン</b>：最初に4枚伏せる壁。パワー0なので、ブロックすると1回で壊れる。</p>
     <p><b>バトル</b>：パワーが大きい方が勝ち、同じなら相打ち。複数でブロックするとパワーを合計できる。</p>
   </div>`, 'tall');

@@ -581,3 +581,46 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .card.back.as-ijin.can { box-shadow: 0 0 0 2px var(--mine), 0 0 18px -2px var(--mine); }
 .card.back.as-ijin.picked { box-shadow: 0 0 0 3px var(--danger), 0 10px 24px -6px var(--danger); }
 .badge.gpw { top: auto; bottom: -6px; right: 50%; transform: translateX(50%); width: auto; min-width: 34px; padding: 0 5px; border-radius: 8px; background: #0d0a08; border: 1.5px solid #7fd3ff; color: #cdeeff; font-weight: 900; font-size: 11px; }
+
+/* カードを使ったときの演出（画面いっぱいに見せてから元の場所へ） */
+.sc-stage { position: fixed; inset: 0; z-index: 35; overflow: hidden; touch-action: none; cursor: pointer; }
+.sc-stage > * { pointer-events: none; }
+.sc-dim { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--col) 30%, transparent), rgba(6, 4, 3, .82) 62%); animation: sc-in .3s ease-out both; }
+.sc-rays { position: absolute; left: 50%; top: 50%; width: 180vmax; height: 180vmax; margin: -90vmax 0 0 -90vmax; opacity: .55; mix-blend-mode: screen;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--col) 55%, transparent) 0deg 4deg, transparent 4deg 15deg, color-mix(in srgb, var(--col2) 40%, transparent) 15deg 18deg, transparent 18deg 30deg);
+  -webkit-mask: radial-gradient(circle, #000 0, #000 18%, transparent 55%); mask: radial-gradient(circle, #000 0, #000 18%, transparent 55%);
+  animation: sc-spin 9s linear infinite, sc-in .5s ease-out both; }
+.sc-circle { position: absolute; left: 50%; top: 50%; width: min(130vw, 110vh); aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%);
+  border: 2px solid color-mix(in srgb, var(--col) 70%, #fff); box-shadow: 0 0 30px var(--col), inset 0 0 40px color-mix(in srgb, var(--col) 50%, transparent);
+  background: repeating-conic-gradient(transparent 0 6deg, color-mix(in srgb, var(--col) 35%, transparent) 6deg 7deg); opacity: .5;
+  animation: sc-circle 3s cubic-bezier(.2, .8, .2, 1) both, sc-spin2 14s linear infinite; }
+.sc-circle.c2 { width: min(95vw, 80vh); border-style: dashed; opacity: .4; animation: sc-circle 3s .1s cubic-bezier(.2, .8, .2, 1) both, sc-spin2 10s linear infinite reverse; }
+.sc-label { position: absolute; left: 0; right: 0; top: calc(4% + var(--safe-top)); display: flex; flex-direction: column; align-items: center; gap: 2px; animation: sc-label .5s .15s cubic-bezier(.2, .9, .3, 1.2) both; }
+.sc-label b { font-family: var(--serif); font-size: clamp(26px, 8vw, 44px); letter-spacing: .18em; color: #fff; text-shadow: 0 0 12px var(--col), 0 0 28px var(--col), 0 3px 0 rgba(0, 0, 0, .6); }
+.sc-label small { font-size: 12px; font-weight: 800; letter-spacing: .3em; padding: 2px 12px; border-radius: 999px; background: color-mix(in srgb, var(--col) 70%, #000); color: #fff; }
+.sc-stage.foe .sc-label small { background: #7a2b20; }
+.sc-card { position: absolute; left: 0; top: 0; width: 200px; height: 286px; transform-origin: center; will-change: transform;
+  filter: drop-shadow(0 0 18px var(--col)) drop-shadow(0 0 46px color-mix(in srgb, var(--col) 60%, transparent)); }
+.sc-card > .card { width: 200px; height: 286px; }
+.sc-sheen { position: absolute; inset: 0; border-radius: 12px; overflow: hidden; pointer-events: none; }
+.sc-sheen::after { content: ''; position: absolute; inset: -30% -80%; background: linear-gradient(110deg, transparent 40%, rgba(255, 255, 255, .7) 50%, transparent 60%); transform: translateX(-80%); animation: sc-sheen 1.6s .35s ease-in-out infinite; mix-blend-mode: overlay; }
+.sc-mote { position: absolute; bottom: -10px; width: var(--s); height: var(--s); border-radius: 50%; background: #fff; box-shadow: 0 0 8px var(--col), 0 0 14px var(--col); animation: sc-mote var(--d) linear infinite; opacity: 0; }
+.sc-flash { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #fff, color-mix(in srgb, var(--col) 60%, transparent) 35%, transparent 70%); animation: flash .45s ease-out forwards; }
+.sc-shock { position: absolute; left: 50%; top: 50%; width: 80px; height: 80px; margin: -40px 0 0 -40px; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 24px var(--col), inset 0 0 18px var(--col); animation: sc-shock .7s ease-out forwards; }
+.sc-shock.s2 { border-color: var(--col); animation-delay: .12s; animation-duration: .9s; }
+.sc-spark { position: absolute; width: var(--len); height: 3px; border-radius: 3px; box-shadow: 0 0 8px currentColor, 0 0 12px #fff; transform: translate(-50%, -50%) rotate(var(--rot)); animation: bf-spark .8s cubic-bezier(.1, .8, .3, 1) forwards; }
+.sc-lines { position: absolute; width: 0; height: 0; }
+.sc-lines > div { position: absolute; left: 0; top: 0; height: 2px; width: var(--l); transform-origin: 0 50%; transform: rotate(var(--a)) translateX(12vmin) scaleX(0); animation: sc-line .6s cubic-bezier(.1, .8, .3, 1) forwards; }
+.sc-stage.out .sc-dim, .sc-stage.out .sc-rays, .sc-stage.out .sc-circle, .sc-stage.out .sc-label, .sc-stage.out .sc-mote { transition: opacity .3s; opacity: 0 !important; }
+.sc-land { position: fixed; z-index: 34; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 18px var(--col), inset 0 0 12px var(--col); pointer-events: none; animation: sc-land .5s ease-out forwards; }
+@keyframes sc-in { from { opacity: 0; } }
+@keyframes sc-spin { to { transform: rotate(360deg); } }
+@keyframes sc-spin2 { to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes sc-circle { from { transform: translate(-50%, -50%) scale(.2) rotate(-90deg); opacity: 0; } 30% { opacity: .6; } }
+@keyframes sc-label { from { opacity: 0; transform: translateY(-20px) scale(1.4); letter-spacing: .5em; } }
+@keyframes sc-sheen { 0% { transform: translateX(-80%); } 60%, 100% { transform: translateX(80%); } }
+@keyframes sc-mote { 0% { transform: translate(0, 0); opacity: 0; } 15% { opacity: .9; } 100% { transform: translate(var(--x), -105vh); opacity: 0; } }
+@keyframes sc-shock { from { transform: scale(.3); opacity: 1; } to { transform: scale(9); opacity: 0; } }
+@keyframes sc-line { 0% { transform: rotate(var(--a)) translateX(12vmin) scaleX(0); opacity: 1; } 100% { transform: rotate(var(--a)) translateX(40vmin) scaleX(1); opacity: 0; } }
+@keyframes sc-land { from { transform: scale(.5); opacity: 1; } to { transform: scale(4.5); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .sc-rays, .sc-circle, .sc-mote { animation: none; } }

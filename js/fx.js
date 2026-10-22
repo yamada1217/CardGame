@@ -4,6 +4,7 @@ import { def } from './engine.js';
 import { cardFace } from './cardview.js';
 import { sfx } from './sfx.js';
 import { battleStage } from './battle-fx.js';
+import { showcase } from './showcase.js';
 
 const ZONES = ['hand', 'mana', 'field', 'guardians', 'grave', 'deck'];
 const DURATION = 1100;
@@ -30,6 +31,16 @@ export function planFx(before, after, p, action) {
     else if (x.z === 'hand' && type === 'mahou') fx.push({ kind: 'magic', uid, c: x.c });
     else if (y?.z === 'field') fx.push({ kind: type === 'haikei' ? 'place' : 'summon', uid, c: x.c, p: y.p });
     else if (y?.z === 'mana') fx.push({ kind: 'charge', uid });
+  }
+  // 手札から使ったカードは、画面いっぱいに見せる演出を先に流す
+  if (action?.type === 'play') {
+    const x = a.get(action.uid);
+    if (x?.z === 'hand' && def(x.c).type !== 'maryoku') {
+      const y = b.get(action.uid);
+      fx.unshift({ kind: 'show', uid: action.uid, c: x.c, p: x.p, dz: y?.z, dp: y?.p });
+      for (let i = fx.length - 1; i > 0; i--) if (fx[i].uid === action.uid && fx[i].kind === 'magic') fx.splice(i, 1);
+      fx.forEach((e) => { if (e.uid === action.uid && e.kind !== 'show') e.shown = true; });
+    }
   }
   if (action?.type === 'declareAttack') (action.attackers || []).forEach((uid) => fx.push({ kind: 'attack', uid, p }));
   if (action?.type === 'declareBlocks') {
@@ -121,7 +132,10 @@ function shake(root, strong) {
 // render() を挟んでエフェクトを再生する
 let busyUntil = 0;
 // 演出が終わるまで待つ（CPUが演出の途中で次の手を指さないように）
-export const fxWait = () => new Promise((res) => setTimeout(res, Math.max(0, busyUntil - Date.now())));
+// 早送りで終わりが早まることもあるので、少しずつ確かめる
+export async function fxWait() {
+  while (busyUntil > Date.now()) await new Promise((res) => setTimeout(res, Math.min(100, busyUntil - Date.now())));
+}
 
 export function runFx(root, fx, render, me) {
   if (!fx.length) return render();
@@ -137,11 +151,32 @@ export function runFx(root, fx, render, me) {
     const el = find(root, e.uid);
     return el && { ...e, rect: el.getBoundingClientRect(), html: el.outerHTML };
   }).filter(Boolean);
+  const show = fx.find((e) => e.kind === 'show');
+  const from = show && find(root, show.uid)?.getBoundingClientRect();
   render();
   const L = getLayer();
-  const wait = battle ? battleStage(L, battle, bsnaps, root, me, () => shake(root, true)) : 0;
+  let wait = battle ? battleStage(L, battle, bsnaps, root, me, () => shake(root, true)) : 0;
+  let timer = null;
+  const play = () => { timer = null; playFx(root, fx.filter((e) => e.kind !== 'show'), shots, L, me); };
+  if (show) {
+    // 戻り先（戦場のカード、マホウなら墓地）は、演出の間は隠しておく
+    const target = () => {
+      if (show.dz === 'field') { const t = find(root, show.uid); return t?.closest('.slot') || t; }
+      if (show.dz === 'grave') return root.querySelector(`.grave-pile[data-grave="${show.dp}"]`);
+      return null;
+    };
+    const hidden = target();
+    if (hidden) hidden.style.visibility = 'hidden';
+    wait = showcase(show, from && from.width ? from : null, () => target()?.getBoundingClientRect() || null, me, (rest) => {
+      busyUntil = Date.now() + rest;
+      if (timer) { clearTimeout(timer); timer = setTimeout(reveal, rest); }
+    });
+    const reveal = () => { const t = target(); if (t) t.style.visibility = ''; if (hidden) hidden.style.visibility = ''; play(); };
+    busyUntil = Date.now() + wait;
+    timer = setTimeout(reveal, wait);
+    return;
+  }
   if (wait) busyUntil = Date.now() + wait;
-  const play = () => playFx(root, fx, shots, L, me);
   if (wait) setTimeout(play, wait); else play();
 }
 
@@ -172,7 +207,7 @@ function playFx(root, fx, shots, L, me) {
   if (big) setTimeout(() => shake(root, big > 1), clash ? 320 : 60);
   if (big > 1) { const f = document.createElement('div'); f.className = 'fx-flash red'; L.appendChild(f); setTimeout(() => f.remove(), 700); }
   for (const e of fx) {
-    if (e.kind === 'magic') {
+    if (e.kind === 'magic' && !e.shown) {
       const g = document.createElement('div');
       g.className = 'fx-magic';
       g.innerHTML = `<i class="fx-circle"></i><div class="fx-magic-card">${cardFace(e.c, { size: 'l' })}</div><i class="fx-wave"></i><i class="fx-wave w2"></i>`;
@@ -196,7 +231,7 @@ function playFx(root, fx, shots, L, me) {
         deco(L, 'fx-pillar', r); burst(L, cx, cy, 'summon', 16, 90, 150);
         // レベル5以上は登場カットイン
         const d = def(e.c);
-        if (d.level >= 5) { cutIn(L, '降臨', d.name, HUE[d.color] || '#ffd36b', e.p === me ? 'left' : 'right'); speedLines(L, cx, cy, '#ffe9a8', 100); impact(L, 380); setTimeout(() => shake(root, true), 380); }
+        if (d.level >= 5 && !e.shown) { cutIn(L, '降臨', d.name, HUE[d.color] || '#ffd36b', e.p === me ? 'left' : 'right'); speedLines(L, cx, cy, '#ffe9a8', 100); impact(L, 380); setTimeout(() => shake(root, true), 380); }
       }
       if (e.kind === 'place') { deco(L, 'fx-quake', r, 250); burst(L, cx, r.bottom, 'place', 12, 70, 300); }
       if (e.kind === 'attack') { deco(L, `fx-streak ${e.p === me ? 'up' : 'down'}`, r); burst(L, cx, cy, 'attack', 12, 70, 120); speedLines(L, cx, cy, '#ffc28a'); }
