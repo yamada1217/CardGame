@@ -147,3 +147,37 @@ export function artFor(d) {
   cache.set(key, url);
   return url;
 }
+
+// 一覧のように多くの絵を並べる所では、SVGを毎回描くと重いので、小さな画像に焼いて使い回す
+// 焼き上がったら cb(url) を呼ぶ（焼き済みならすぐ呼ぶ）
+const baked = new Map(), waiting = new Map();
+let baking = false;
+export function bakedArt(d, cb) {
+  const svg = artFor(d);
+  if (!svg) return;
+  if (baked.has(svg)) return cb(baked.get(svg));
+  if (waiting.has(svg)) return waiting.get(svg).cbs.push(cb);
+  waiting.set(svg, { cbs: [cb] });
+  if (!baking) bakeNext();
+}
+async function bakeNext() {
+  baking = true;
+  const next = waiting.keys().next();
+  if (next.done) { baking = false; return; }
+  const svg = next.value, job = waiting.get(svg);
+  waiting.delete(svg);
+  let url = svg;
+  try {
+    const img = new Image();
+    img.src = svg.slice(5, -2); // url("...") の中身
+    await img.decode();
+    const cv = document.createElement('canvas');
+    cv.width = 150; cv.height = 210;
+    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+    const blob = await new Promise((res) => cv.toBlob(res, 'image/webp', .85));
+    if (blob) url = `url("${URL.createObjectURL(blob)}")`;
+  } catch { /* 焼けなければSVGのまま使う */ }
+  baked.set(svg, url);
+  job.cbs.forEach((f) => f(url));
+  setTimeout(bakeNext, 0);
+}
