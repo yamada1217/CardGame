@@ -9,6 +9,7 @@ import { onlineAvailable, hostRoom, joinRoom, roomUrl, savedSession } from './on
 import { usableDecks, deckForMatch, sanitizeDeck, deckColors, expand } from './decks.js';
 import { CPU_DECKS, resolveDeck } from './cpu-decks.js';
 import { openDeckList } from './builder.js';
+import { syncCode, startSync, joinSync } from './sync.js';
 import { myProfile, sendRequest, accept, decline, unfriend, invite, clearInvite, watchFriends, watchInvites, formatCode } from './friends.js';
 
 const $app = document.getElementById('app');
@@ -178,9 +179,9 @@ async function openFriends() {
         <button class="btn primary small" data-inv="${esc(f.uid)}" ${f.online ? '' : 'disabled'}>対戦に誘う</button></div>`).join('') || '<p class="fine">まだフレンドがいません。コードを教え合って申請しましょう。</p>'}`;
     s.querySelectorAll('[data-yes]').forEach((b) => b.onclick = () => accept(b.dataset.yes).then(() => toast('フレンドになりました')).catch(() => toast('承認できませんでした')));
     s.querySelectorAll('[data-no]').forEach((b) => b.onclick = () => decline(b.dataset.no));
-    s.querySelectorAll('[data-del]').forEach((b) => b.onclick = () => {
+    s.querySelectorAll('[data-del]').forEach((b) => b.onclick = async () => {
       const f = friends.find((x) => x.uid === b.dataset.del);
-      confirmSheet(`${f?.name || 'この人'}をフレンドから外しますか？`, () => { unfriend(b.dataset.del); openFriends(); });
+      if (await confirmSheet(`${f?.name || 'この人'}をフレンドから外しますか？`, '外す')) { await unfriend(b.dataset.del); openFriends(); }
     });
     s.querySelectorAll('[data-inv]').forEach((b) => b.onclick = () => {
       const f = friends.find((x) => x.uid === b.dataset.inv);
@@ -218,6 +219,7 @@ function pickDeck(title, onGo) {
     <div class="deck-choices">
       ${mine.length ? `<p class="group-label">自作デッキ</p>${mine.map(row).join('')}` : ''}
       <p class="group-label">スターター</p>${starters.map(row).join('')}
+      ${onlineAvailable() && !syncCode() ? '<p class="sub-note">ほかの端末で作ったデッキは、両方の「デッキ構築」で引き継ぎコードをつなぐと使えます。</p>' : ''}
     </div>
     <div class="sheet-actions row"><button class="btn ghost" data-go="build">デッキを作る</button><button class="btn primary" data-go="start">このデッキで対戦</button></div>`, 'tall');
   s.querySelectorAll('[data-deck]').forEach((b) => b.onclick = () => {
@@ -969,6 +971,16 @@ document.addEventListener('click', (e) => {
 
 // フレンド機能を使ったことがあれば、対戦の誘いを受け取れるようにしておく
 if (load('ijinden.friendsOn') && onlineAvailable()) myProfile(myName()).then(startInviteWatch).catch(() => {});
+
+// 引き継ぎコード：保存してあれば同期を始める。リンク（?sync=コード）で開いたらつなぐ
+{
+  const q = new URLSearchParams(location.search), code = q.get('sync');
+  if (code && onlineAvailable()) {
+    q.delete('sync');
+    history.replaceState(null, '', `${location.pathname}${q.toString() ? `?${q}` : ''}`);
+    joinSync(code).then(() => toast('引き継ぎコードでつなぎました。自作デッキをそろえました')).catch((e) => toast(e?.message || '引き継ぎコードでつなげませんでした'));
+  } else if (syncCode() && onlineAvailable()) startSync().catch(() => {});
+}
 
 // 対戦中に再読み込みしても、同じ部屋に戻る
 try {

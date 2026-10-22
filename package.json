@@ -1,1 +1,1 @@
-{"name":"ijinden-online","private":true,"type":"module","scripts":{"test":"node test/sim.js && node test/cpu-decks.js"}}
+{"name":"ijinden-online","private":true,"type":"module","scripts":{"test":"node test/haikei.js && node test/sim.js && node test/cpu-decks.js"}}

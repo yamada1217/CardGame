@@ -12,6 +12,14 @@ const KEY = 'ijinden.decks';
 // 効果が実装されていて、対戦で使えるカード
 export const playable = (id) => READY.has(id);
 
+const DELETED = 'ijinden.decks.deleted'; // 消したデッキの記録 { id: 消した時刻 }（端末間の同期で復活しないように）
+const changeListeners = new Set();
+export const onDecksChanged = (fn) => { changeListeners.add(fn); return () => changeListeners.delete(fn); };
+const changed = () => changeListeners.forEach((fn) => fn());
+
+function readDeleted() {
+  try { return JSON.parse(localStorage.getItem(DELETED)) || {}; } catch { return {}; }
+}
 function read() {
   try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; }
 }
@@ -26,11 +34,51 @@ export function saveDeck(deck) {
   const list = read().filter((d) => d.id !== deck.id);
   const saved = { ...deck, updated: Date.now() };
   write([saved, ...list]);
+  changed();
   return saved;
 }
 
 export function deleteDeck(id) {
   write(read().filter((d) => d.id !== id));
+  try { localStorage.setItem(DELETED, JSON.stringify({ ...readDeleted(), [id]: Date.now() })); } catch { /* 続行 */ }
+  changed();
+}
+
+// ---------- 端末間の同期用 ----------
+// スナップショット: { decks: { id: { name, cards, updated } }, deleted: { id: 時刻 } }
+
+export function localSnapshot() {
+  const decks = {};
+  for (const d of read()) decks[d.id] = { name: d.name, cards: d.cards || {}, updated: d.updated || 0 };
+  return { decks, deleted: readDeleted() };
+}
+
+// 同期で受け取った内容をこの端末に書く（変更の通知は出さない）
+export function applySnapshot(snap) {
+  write(Object.entries(snap.decks || {}).map(([id, d]) => ({ id, name: d.name, cards: d.cards || {}, updated: d.updated || 0 })));
+  try { localStorage.setItem(DELETED, JSON.stringify(snap.deleted || {})); } catch { /* 続行 */ }
+}
+
+// 2つを合わせる。同じデッキは新しく保存した方、消した記録が保存より新しければ消す
+export function mergeSnapshots(a, b) {
+  const deleted = { ...(a?.deleted || {}) };
+  for (const [id, t] of Object.entries(b?.deleted || {})) deleted[id] = Math.max(deleted[id] || 0, t);
+  const decks = {};
+  for (const src of [a?.decks || {}, b?.decks || {}]) {
+    for (const [id, d] of Object.entries(src)) {
+      if (!d || typeof d.name !== 'string') continue;
+      const cur = decks[id];
+      if (!cur || (d.updated || 0) > (cur.updated || 0)) decks[id] = { name: d.name.slice(0, 20), cards: sanitizeCards(d.cards), updated: d.updated || 0 };
+    }
+  }
+  for (const [id, t] of Object.entries(deleted)) if (decks[id] && decks[id].updated <= t) delete decks[id];
+  return { decks, deleted };
+}
+
+function sanitizeCards(cards) {
+  const out = {};
+  for (const [id, n] of Object.entries(cards || {})) if (CARDS[id] && Number.isInteger(n) && n > 0 && n <= 60) out[id] = n;
+  return out;
 }
 
 export function newDeck(name = '新しいデッキ', cards = {}) {

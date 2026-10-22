@@ -72,6 +72,13 @@
         }
       }
     },
+    "saves": {
+      "$code": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        ".validate": "$code.matches(/^[A-Z2-9]{10}$/) && newData.hasChildren(['at'])"
+      }
+    },
     "invites": {
       "$to": {
         ".read": "auth != null && auth.uid === $to",
