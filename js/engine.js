@@ -125,7 +125,7 @@ export function checkPlay(s, p, uid) {
   const lv = playLevel(s, p, inst), have = levelSum(s, p);
   if (have < lv) {
     const red = (E[d.id]?.play?.reduce?.(s, p, inst) || 0) + (d.type === 'ijin' ? tapReduce(s, p) : 0);
-    if (have < lv - red) return { ok: false, why: `レベル${lv}が必要です（今は${have}）` };
+    if (have < lv - red) return { ok: false, why: `レベル${lv}が必要です（今は${have}：表向きマリョクのレベル＋裏向きの枚数）` };
   }
   if (d.type === 'ijin' && !summonRight(s, p, inst)) return { ok: false, why: 'イジン召喚権がありません' };
   if (d.type === 'mahou') {

@@ -142,6 +142,7 @@ const SOUNDS = {
   },
   mana: () => { thump(0, .6); noise({ dur: .4, freq: 2500, to: 500, vol: .3, rev: .5 }); tone(196, { dur: .3, type: 'square', vol: .05, to: 82, rev: .4 }); },
   charge: () => { tone(392, { dur: .4, type: 'triangle', vol: .14, rev: .6 }); tone(587, { at: .05, dur: .5, vol: .1, rev: .7 }); sub(0, 82, .3, .4); },
+  whoosh: () => { whoosh(0, .32, 200, 4200, .45); noise({ at: .02, dur: .25, freq: 5000, to: 1200, vol: .12, rev: .5 }); },
   bounce: () => { whoosh(0, .45, 250, 3500, .35); tone(196, { dur: .45, vol: .2, to: 784, rev: .6 }); },
   magic: () => {
     whoosh(0, .6, 150, 5000, .3);
