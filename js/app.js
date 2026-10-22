@@ -244,7 +244,8 @@ function resetBoardUi() {
 }
 
 // CPUの強さを選ぶ
-const LEVEL_NOTE = { easy: '迷ったり見落としたりする。はじめての人に', normal: '決まった手順で堅実に戦う', hard: '手を先読みして一番よい手を選ぶ' };
+// 強さの差は考え方だけ（ルール上の有利・不利はない）
+const LEVEL_NOTE = { easy: 'マリョクの置き方が雑で、出し忘れやブロックの見落としがある', normal: '決まった手順で堅実に戦う', hard: '相手の反撃まで先読みして手を選ぶ。手札も見ていない' };
 function pickLevel() {
   vibrate();
   if (!CPU_LEVELS[ui.cpuLevel]) ui.cpuLevel = 'normal';
