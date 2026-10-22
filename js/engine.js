@@ -28,8 +28,33 @@ export function createGame({ seed = Date.now() >>> 0, names = ['あなた', 'あ
   }
   s.turn = first ?? (random(s) < 0.5 ? 0 : 1);
   s.first = s.turn;
+  s.dice = rollDice(seed, s.first);
+  log(s, `サイコロ ${s.dice.map(([a, b]) => `${a}対${b}`).join('、')}`);
   log(s, `${s.players[s.turn].name}の先攻`);
   return s;
+}
+
+// 先攻を決めるサイコロ。[[プレイヤー0の目, プレイヤー1の目], ...]、同じ目なら振り直す。
+// 盤面の乱数とは別に seed から作るので、両方の端末で同じ目になる。最後の組は先攻側が大きい。
+function rollDice(seed, first) {
+  let x = (seed ^ 0x9e3779b9) >>> 0;
+  const d6 = () => {
+    x = (x + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(x ^ (x >>> 15), 1 | x);
+    t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+    return Math.floor((((t ^ (t >>> 14)) >>> 0) / 4294967296) * 6) + 1;
+  };
+  const rolls = [];
+  for (let i = 0; i < 5; i++) {
+    const a = d6(), b = d6();
+    if (a === b) { rolls.push([a, b]); continue; }
+    const hi = Math.max(a, b), lo = Math.min(a, b);
+    rolls.push(first === 0 ? [hi, lo] : [lo, hi]);
+    return rolls;
+  }
+  const lo = 1 + (x % 5);
+  rolls.push(first === 0 ? [lo + 1, lo] : [lo, lo + 1]);
+  return rolls;
 }
 
 function newTf() {
