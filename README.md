@@ -28,5 +28,6 @@ npm test                 # CPU同士を300戦させてエンジンを確認
 | `js/ai.js` | CPUの思考 |
 | `js/app.js` | 画面とタップ操作 |
 | `js/online.js` | オンライン対戦。行動だけを順番に記録し、両端末で同じように再生する |
+| `js/friends.js` | フレンド登録（フレンドコード・申請・承認・オンライン表示・対戦の誘い） |
 | `database.rules.json` | Firebase のセキュリティルール |
 | `docs/ijinden/RULES.md` | ルール仕様（公式ルール・Q&Aから整理） |
