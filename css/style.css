@@ -532,3 +532,37 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .friends .search-row .name-input { width: auto; min-width: 0; margin: 0; height: 44px; }
 .friends .search-row .btn { height: 44px; }
 .friends .search-row { padding: 0; margin: 0; }
+
+/* ---------- ブロック時のバトル演出（battle-fx.js） ---------- */
+.bf-stage { position: fixed; inset: 0; pointer-events: none; animation: fx-fade-in .18s ease-out; }
+.bf-stage.out { animation: bf-out .4s ease-in forwards; }
+.bf-dim { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 46%, rgba(40, 24, 10, .35), rgba(4, 3, 8, .86) 70%); }
+.bf-circle { position: absolute; left: 50%; top: 46%; width: min(92vmin, 520px); aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(from 0deg, rgba(255, 214, 130, .55) 0 2deg, transparent 2deg 15deg);
+  -webkit-mask: radial-gradient(circle, transparent 46%, #000 47% 49%, transparent 50% 62%, #000 63% 64%, transparent 65% 69%, #000 70% 71%, transparent 72%);
+  mask: radial-gradient(circle, transparent 46%, #000 47% 49%, transparent 50% 62%, #000 63% 64%, transparent 65% 69%, #000 70% 71%, transparent 72%);
+  filter: drop-shadow(0 0 10px #ffc861); animation: bf-spin 3s linear infinite, fx-fade-in .3s ease-out; opacity: .85; }
+.bf-lines { position: absolute; inset: -20%; background: repeating-conic-gradient(from 0deg at 50% 46%, rgba(255, 255, 255, .09) 0 .6deg, transparent .6deg 7deg); animation: bf-pulse .25s steps(2) infinite; }
+.bf-mote { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #ffe7a6; box-shadow: 0 0 8px 2px rgba(255, 210, 120, .9); opacity: 0; animation: bf-mote var(--d) ease-out infinite; }
+.bf-card { position: fixed; z-index: 2; transform-origin: center; filter: drop-shadow(0 0 16px rgba(255, 220, 140, .75)); }
+.bf-card > .card { margin: 0; }
+.bf-card.bf-win { filter: drop-shadow(0 0 22px rgba(140, 220, 255, .95)) brightness(1.15); }
+.bf-spark { position: fixed; z-index: 3; width: var(--len); height: 2.5px; border-radius: 3px; box-shadow: 0 0 6px currentColor, 0 0 10px #fff; transform: translate(-50%, -50%) rotate(var(--rot)); animation: bf-spark .6s cubic-bezier(.1, .8, .3, 1) forwards; }
+.bf-slash { position: fixed; z-index: 3; width: min(120vw, 760px); height: 7px; border-radius: 50%; transform: translate(-50%, -50%) rotate(var(--a)) scaleX(0);
+  background: linear-gradient(90deg, transparent, var(--c) 30%, #fff 50%, var(--c) 70%, transparent); box-shadow: 0 0 18px var(--c), 0 0 40px var(--c); animation: bf-slash .42s cubic-bezier(.1, .9, .2, 1) forwards; }
+.bf-shock { position: fixed; z-index: 3; width: 60px; height: 60px; border-radius: 50%; border: 3px solid rgba(255, 240, 200, .95); box-shadow: 0 0 20px #ffd27a, inset 0 0 16px #fff; transform: translate(-50%, -50%) scale(.2); animation: bf-shock .55s ease-out forwards; }
+.bf-shock.big { border-width: 5px; animation-duration: .7s; }
+.bf-flash { position: fixed; inset: 0; z-index: 4; background: radial-gradient(circle at 50% 46%, rgba(255, 255, 255, .55), rgba(255, 220, 150, .15) 40%, transparent 65%); animation: flash .25s ease-out forwards; }
+.bf-flash.big { background: radial-gradient(circle at 50% 46%, rgba(255, 255, 255, .95), rgba(255, 200, 120, .35) 35%, transparent 70%); }
+.bf-shard { position: fixed; z-index: 3; animation: bf-shard .85s cubic-bezier(.2, .7, .4, 1) forwards; filter: drop-shadow(0 0 8px #ff8a3d); }
+.bf-shard > .card { margin: 0; }
+@keyframes bf-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes bf-pulse { 50% { opacity: .5; } }
+@keyframes bf-out { to { opacity: 0; } }
+@keyframes fx-fade-in { from { opacity: 0; } }
+@keyframes bf-mote { 0% { opacity: 0; transform: none; } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--x), -38vh); } }
+@keyframes bf-spark { 0% { opacity: 1; } 100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scaleX(.3); } }
+@keyframes bf-slash { 0% { transform: translate(-50%, -50%) rotate(var(--a)) scaleX(0); opacity: 1; } 40% { transform: translate(-50%, -50%) rotate(var(--a)) scaleX(1); opacity: 1; } 100% { transform: translate(-50%, -50%) rotate(var(--a)) scaleX(1.1) scaleY(.2); opacity: 0; } }
+@keyframes bf-shock { to { transform: translate(-50%, -50%) scale(7); opacity: 0; } }
+@keyframes bf-shard { 0% { transform: none; opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) rotate(var(--r)) scale(.7); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .bf-lines, .bf-mote { display: none; } }

@@ -3,6 +3,7 @@
 import { def } from './engine.js';
 import { cardFace } from './cardview.js';
 import { sfx } from './sfx.js';
+import { battleStage } from './battle-fx.js';
 
 const ZONES = ['hand', 'mana', 'field', 'guardians', 'grave', 'deck'];
 const DURATION = 1100;
@@ -31,7 +32,18 @@ export function planFx(before, after, p, action) {
     else if (y?.z === 'mana') fx.push({ kind: 'charge', uid });
   }
   if (action?.type === 'declareAttack') (action.attackers || []).forEach((uid) => fx.push({ kind: 'attack', uid, p }));
-  if (action?.type === 'declareBlocks') Object.values(action.blocks || {}).flat().forEach((uid) => fx.push({ kind: 'block', uid }));
+  if (action?.type === 'declareBlocks') {
+    // ブロックがあれば、ぶつかり合いの演出にまとめる
+    const pairs = Object.entries(action.blocks || {}).filter(([, bs]) => bs?.length).map(([atk, blks]) => ({ atk, blks }));
+    if (pairs.length) {
+      const outcome = {};
+      for (const uid of pairs.flatMap((x) => [x.atk, ...x.blks])) {
+        const y = b.get(uid);
+        outcome[uid] = y?.z === 'hand' ? 'bounce' : y && (y.z === 'field' || y.z === 'guardians') ? 'stay' : 'destroy';
+      }
+      fx.push({ kind: 'battle', pairs, outcome, atkOwner: 1 - p });
+    }
+  }
   return fx;
 }
 
@@ -107,14 +119,33 @@ function shake(root, strong) {
 }
 
 // render() を挟んでエフェクトを再生する
+let busyUntil = 0;
+// 演出が終わるまで待つ（CPUが演出の途中で次の手を指さないように）
+export const fxWait = () => new Promise((res) => setTimeout(res, Math.max(0, busyUntil - Date.now())));
+
 export function runFx(root, fx, render, me) {
   if (!fx.length) return render();
+  const battle = fx.find((e) => e.kind === 'battle');
+  let bsnaps = null;
+  if (battle) {
+    const inv = new Set(battle.pairs.flatMap((x) => [x.atk, ...x.blks]));
+    bsnaps = {};
+    for (const uid of inv) { const e = find(root, uid); if (e) bsnaps[uid] = { rect: e.getBoundingClientRect(), html: e.outerHTML }; }
+    fx = fx.filter((e) => e.kind !== 'battle' && !(inv.has(e.uid) && ['destroy', 'bounce', 'guard', 'block'].includes(e.kind)));
+  }
   const shots = fx.filter((e) => OLD.has(e.kind)).map((e) => {
     const el = find(root, e.uid);
     return el && { ...e, rect: el.getBoundingClientRect(), html: el.outerHTML };
   }).filter(Boolean);
   render();
   const L = getLayer();
+  const wait = battle ? battleStage(L, battle, bsnaps, root, me, () => shake(root, true)) : 0;
+  if (wait) busyUntil = Date.now() + wait;
+  const play = () => playFx(root, fx, shots, L, me);
+  if (wait) setTimeout(play, wait); else play();
+}
+
+function playFx(root, fx, shots, L, me) {
   // ブロックの直後は、ぶつかってから壊れるように少し遅らせる
   const clash = fx.some((e) => e.kind === 'block');
   for (const k of new Set(fx.map((e) => e.kind))) if (k !== 'spend') setTimeout(() => sfx(k), clash && k !== 'block' ? 320 : 0);

@@ -127,6 +127,19 @@ const SOUNDS = {
     noise({ dur: .45, freq: 4500, to: 900, vol: .4, q: 2.5, rev: .6 });
     [1397, 2093].forEach((f, i) => tone(f, { at: i * .03, dur: .6, type: 'triangle', vol: .05, rev: .9 }));
   },
+  // 剣戟：金属の倍音（整数倍でない高い音）を重ねて、短く鋭く鳴らす
+  clash: () => {
+    thump(0, .6); sub(0, 70, .3, .5);
+    noise({ dur: .12, freq: 6000, vol: .35, type: 'highpass', rev: .4 });
+    [1180, 1870, 2650, 3420].forEach((f, i) => tone(f * (.97 + Math.random() * .06), { dur: .45 - i * .06, type: i % 2 ? 'triangle' : 'sine', vol: .07, rev: .7 }));
+  },
+  clashBig: () => {
+    sub(0, 48, .9, 1.1); thump(0, 1);
+    noise({ dur: .2, freq: 7000, vol: .45, type: 'highpass', rev: .5 });
+    noise({ dur: .8, freq: 2500, to: 150, vol: .4, type: 'lowpass', rev: .8 });
+    [980, 1560, 2210, 2980, 3870].forEach((f, i) => tone(f * (.97 + Math.random() * .06), { dur: .9 - i * .1, type: i % 2 ? 'triangle' : 'sine', vol: .08, rev: .9 }));
+    whoosh(.02, .3, 3000, 500, .3);
+  },
   mana: () => { thump(0, .6); noise({ dur: .4, freq: 2500, to: 500, vol: .3, rev: .5 }); tone(196, { dur: .3, type: 'square', vol: .05, to: 82, rev: .4 }); },
   charge: () => { tone(392, { dur: .4, type: 'triangle', vol: .14, rev: .6 }); tone(587, { at: .05, dur: .5, vol: .1, rev: .7 }); sub(0, 82, .3, .4); },
   bounce: () => { whoosh(0, .45, 250, 3500, .35); tone(196, { dur: .45, vol: .2, to: 784, rev: .6 }); },
