@@ -10,6 +10,7 @@ import { usableDecks, deckForMatch, sanitizeDeck, deckColors, expand } from './d
 import { CPU_DECKS, resolveDeck } from './cpu-decks.js';
 import { openDeckList } from './builder.js';
 import { syncCode, startSync, joinSync } from './sync.js';
+import { openGuide } from './guide.js';
 import { myProfile, sendRequest, accept, decline, unfriend, invite, clearInvite, watchFriends, watchInvites, formatCode } from './friends.js';
 
 const $app = document.getElementById('app');
@@ -109,12 +110,15 @@ function renderTitle() {
         <button class="mode" id="open-builder"><span class="mode-icon build">▤</span><span class="mode-text"><b>デッキ構築</b><small>自分だけのデッキを作る</small></span><span class="chev">›</span></button>
         <button class="mode${canOnline ? '' : ' soon'}" id="open-friends"><span class="mode-icon pal">☺</span><span class="mode-text"><b>フレンド登録</b><small>${canOnline ? 'コードで登録して対戦に誘う' : '準備中'}</small></span><span class="chev">›</span></button>
       </nav>
+      <button class="guide-link" id="open-guide">📖 はじめての方へ：遊び方</button>
       <p class="fine">ルールは公式ルール・Q&amp;Aにもとづいています。</p>
     </main>`;
   const nameEl = document.getElementById('name');
   nameEl.oninput = () => { ui.name = nameEl.value; store('ijinden.name', ui.name); };
   document.getElementById('sound').onclick = (e) => { e.stopPropagation(); setMuted(!isMuted()); e.currentTarget.textContent = isMuted() ? '🔇' : '🔊'; sfx('tap'); };
-  document.getElementById('start-cpu').onclick = () => pickDeck('CPU対戦', pickLevel);
+  document.getElementById('open-guide').onclick = () => { store('ijinden.guided', '1'); openGuide(); };
+  // 初めての人は、CPU対戦の前に一度だけ遊び方を見せる
+  document.getElementById('start-cpu').onclick = () => (load('ijinden.guided') ? pickDeck('CPU対戦', pickLevel) : (store('ijinden.guided', '1'), openGuide(() => pickDeck('CPU対戦', pickLevel))));
   document.getElementById('start-online').onclick = () => (canOnline ? pickDeck('フレンド対戦', startHost) : toast('オンライン対戦はもうすぐ使えるようになります'));
   document.getElementById('open-builder').onclick = openBuilder;
   document.getElementById('open-friends').onclick = () => (canOnline ? openFriends() : toast('オンライン機能はもうすぐ使えるようになります'));
@@ -349,7 +353,18 @@ const onlineHandlers = {
   onPresence(on) {
     if (ui.foeOnline === on) return;
     ui.foeOnline = on;
+    clearTimeout(ui.offlineTimer);
     if (ui.screen === 'game') { toast(on ? '相手が戻ってきました' : '相手の接続が切れました'); render(); }
+    if (on) { if ($sheet.querySelector('.foe-gone')) closeSheet(); return; }
+    // しばらく戻ってこなければ、待つかやめるかを選べるようにする
+    ui.offlineTimer = setTimeout(() => {
+      if (ui.foeOnline || ui.screen !== 'game' || ui.game?.phase === 'over' || !ui.online) return;
+      const s = openSheet(`<div class="foe-gone"><h3>相手の接続が切れています</h3>
+        <p class="sub-note">電波の状態などで切れているかもしれません。戻ってくれば、そのまま続きから遊べます。</p>
+        <div class="sheet-actions"><button class="btn ghost" data-g="wait">もう少し待つ</button><button class="btn danger" data-g="quit">対戦をやめる</button></div></div>`);
+      s.querySelector('[data-g="wait"]').onclick = closeSheet;
+      s.querySelector('[data-g="quit"]').onclick = () => { closeSheet(); onAction('title'); };
+    }, 45000);
   },
 };
 
@@ -657,7 +672,7 @@ async function onAction(a) {
   if (a === 'again') {
     if (!ui.online) return startCpuGame();
     ui.online.rematch();
-    return toast('再戦を申し込みました');
+    return toast('再戦を始めます');
   }
   if (a === 'title') { leaveOnline(); ui.joinCode = null; ui.screen = 'title'; closeSheet(); return render(); }
 }
@@ -915,12 +930,23 @@ function showHaikei(p) {
 function showMenu() {
   const s = openSheet(`<h3>メニュー</h3><div class="menu">
     <button class="btn ghost" data-m="sound">効果音：${isMuted() ? 'オフ' : 'オン'}</button>
+    <button class="btn ghost" data-m="guide">遊び方ガイド</button>
     <button class="btn ghost" data-m="rules">ルールのおさらい</button>
-    <button class="btn ghost" data-m="resign">降参してタイトルへ</button>
+    <button class="btn ghost" data-m="resign">${ui.game?.phase === 'over' ? 'タイトルへ' : '降参する'}</button>
     <button class="btn ghost" data-m="close">閉じる</button></div>`);
   s.querySelector('[data-m="close"]').onclick = closeSheet;
-  s.querySelector('[data-m="resign"]').onclick = () => { closeSheet(); leaveOnline(); ui.joinCode = null; ui.screen = 'title'; render(); };
+  s.querySelector('[data-m="resign"]').onclick = async () => {
+    closeSheet();
+    if (ui.game && ui.game.phase !== 'over') {
+      if (!(await confirmSheet('降参しますか？相手の勝ちになります。', '降参する'))) return;
+      // 相手にも負けを知らせる（オンラインは送ってから抜ける）
+      if (ui.online) { try { await ui.online.send({ type: 'resign' }); } catch { /* 送れなくても抜ける */ } }
+      else { const before = ui.game; ui.game = applyAction(ui.game, ME, { type: 'resign' }).state; ui.fx = planAll(before, ui.game, ME, { type: 'resign' }); return afterChange(); }
+    }
+    leaveOnline(); ui.joinCode = null; ui.screen = 'title'; render();
+  };
   s.querySelector('[data-m="rules"]').onclick = showRules;
+  s.querySelector('[data-m="guide"]').onclick = () => { closeSheet(); openGuide(); };
   s.querySelector('[data-m="sound"]').onclick = (e) => { setMuted(!isMuted()); e.currentTarget.textContent = `効果音：${isMuted() ? 'オフ' : 'オン'}`; sfx('tap'); };
 }
 
