@@ -49,14 +49,26 @@ export const total = (cards) => Object.values(cards).reduce((s, n) => s + n, 0);
 // 1種類あたりの上限。ストーンなど「何枚でも」のカードは上限なし
 export const copyLimit = (card) => (card?.unlimited ? Infinity : MAX_COPIES);
 
+// 枚数の上限はカード名ごと。色違いや再録で別IDでも、同じ名前なら合わせて4枚まで（例：ヒエロスガモス）
+const NAME_IDS = new Map();
+for (const c of Object.values(CARDS)) NAME_IDS.set(c.name, [...(NAME_IDS.get(c.name) || []), c.id]);
+export const sameName = (card) => NAME_IDS.get(card.name) || [card.id];
+const nameTotal = (cards, card) => sameName(card).reduce((t, id) => t + (cards[id] || 0), 0);
+
+// このIDを最大何枚まで入れられるか（同名のほかのカードの枚数を差し引く）
+export const capFor = (cards, card) => copyLimit(card) - nameTotal(cards, card) + (cards[card.id] || 0);
+
 export function validate(cards) {
   const errors = [];
   const n = total(cards);
   if (n < MIN_CARDS) errors.push(`あと${MIN_CARDS - n}枚必要です（40枚以上）`);
   if (n > MAX_CARDS) errors.push(`${MAX_CARDS}枚までにしてください`);
+  const byName = {};
   for (const [id, k] of Object.entries(cards)) {
     if (!playable(id)) { errors.push('まだ対戦で使えないカードが入っています'); break; }
-    if (k > copyLimit(CARDS[id])) { errors.push(`「${CARDS[id].name}」は${MAX_COPIES}枚までです`); break; }
+    const name = CARDS[id].name;
+    byName[name] = (byName[name] || 0) + k;
+    if (byName[name] > copyLimit(CARDS[id])) { errors.push(`「${name}」は同じ名前のカードを合わせて${MAX_COPIES}枚までです`); break; }
   }
   return { ok: errors.length === 0, errors, count: n };
 }
