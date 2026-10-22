@@ -2,7 +2,7 @@
 // 背景か「閉じる」をタップすると閉じる。actions を渡すとボタンを並べる（押すと閉じてから実行）。
 import { def } from './engine.js';
 import { COLORS } from './cards.js';
-import { cardFace, esc, TYPE_LABEL, legacyText } from './cardview.js';
+import { cardFace, esc, TYPE_LABEL, legacyText, gains } from './cardview.js';
 
 let root = null;
 
@@ -43,6 +43,7 @@ export function zoomCard(inst, { game = null, p = 0, note = '', actions = [], ca
         <div class="zoom-scroll">
         <div class="zoom-name">${esc(d.name)}${d.rarity ? `<span class="zoom-rarity">${esc(d.rarity)}</span>` : ''}</div>
         <div class="zoom-stats">${stats.map((s) => `<span>${esc(s)}</span>`).join('')}${(d.traits || []).map((t) => `<span class="trait">${esc(t)}</span>`).join('')}</div>
+        ${(() => { const g = game && !card ? gains(game, inst) : []; return g.length ? `<p class="zoom-gains"><b>ほかのカードから得ている</b>${g.map((x) => `<span>${esc(x)}</span>`).join('')}</p>` : ''; })()}
         ${d.text ? `<p class="zoom-text">${esc(d.text).replace(/\n/g, '<br>')}</p>` : ''}
         ${d.legacy ? `<p class="zoom-legacy"><b>遺業</b>${esc(legacyText(d))}</p>` : ''}
         ${note ? `<p class="zoom-note">${esc(note)}</p>` : ''}

@@ -5,7 +5,10 @@ import { CARDS } from './cards.js';
 
 export const E = {};    // カードID → 効果スクリプト
 export const TRIG = {}; // トリガーのキー → 定義
-export const def = (inst) => CARDS[inst.id];
+// 円形闘技場などでイジンになったガーディアンは、レベル・色・特性を持たないパワー3000のイジンとして扱う
+export const GUARD_IJIN = '__guardIjin';
+const VIRTUAL = { [GUARD_IJIN]: { id: GUARD_IJIN, name: 'ガーディアン', type: 'ijin', level: 0, colors: [], traits: [], power: 0, kw: {} } };
+export const def = (inst) => CARDS[inst.id] || VIRTUAL[inst.id];
 export const opp = (p) => 1 - p;
 export const clone = (o) => JSON.parse(JSON.stringify(o));
 export const ownerOf = (uid) => Number(String(uid).split('-')[0]);
@@ -194,6 +197,17 @@ export function stat(s, x, where = null) {
         if (eq?.grant) applyGrant(st, eq.grant(s, tgt, e));
         if (eq?.trig) st.trig.push(...eq.trig.map((t) => t.key));
       }
+    }
+    // イジンになったガーディアンは「自分の戦場のイジン」への効果も受ける
+    if (zone === 'guardians' && st.types.has('ijin')) {
+      const as = { inst: { ...inst, id: GUARD_IJIN }, p: f.p, zone: 'field', guardian: true };
+      for (const src of auraSources(s)) {
+        for (const a of E[src.inst.id].aura) {
+          if (!(a.zones || ['field']).includes(src.zone) || !active(s, src)) continue;
+          applyGrant(st, a.to(s, src, as));
+        }
+      }
+      for (const t of s.tmp) if (t.aura) applyGrant(st, E[t.src].tmpAura[t.aura](s, t, as));
     }
     for (const t of s.tmp) {
       if (t.uid === inst.uid && t.inc === inst.inc && t.grant && !st.lost) applyGrant(st, t.grant);

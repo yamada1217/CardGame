@@ -1,5 +1,5 @@
 import { CARDS, COLORS, DECKS, LEGACY_TEXT } from './cards.js';
-import { createGame, applyAction, def, checkPlay, canAttackWith, canBlockWith, canBlockPair, canStand, power, levelSum, pressure, effectiveLevel, waitingFor, findOnBoard } from './engine.js';
+import { createGame, applyAction, def, checkPlay, canAttackWith, canBlockWith, canBlockPair, canStand, power, levelSum, pressure, effectiveLevel, waitingFor, findOnBoard, stat } from './engine.js';
 import { cpuAction, CPU_LEVELS } from './ai.js';
 import { cardFace as viewCardFace, cardBack, esc } from './cardview.js';
 import { zoomCard, closeZoom } from './zoom.js';
@@ -456,6 +456,11 @@ function renderGame() {
   const guardian = (c, p) => {
     let extra = c.tapped ? ' tapped' : '';
     let badge = '';
+    // 円形闘技場などでイジンになっているガーディアン
+    const gst = stat(g, c, { inst: c, p, zone: 'guardians' });
+    if (gst.types.has('ijin')) { extra += ' as-ijin'; badge += `<b class="badge gpw">${power(g, p, c, atkSet.has(c.uid) ? 'atk' : null)}</b>`; }
+    if (p === ME && ui.mode === 'attack' && canAttackWith(g, ME, c)) extra += ui.picks.includes(c.uid) ? ' picked' : ' can';
+    if (atkSet.has(c.uid)) { extra += ' attacking'; if (p === FOE) { badge += `<b class="badge atk">${atkIndex(c.uid)}</b>${g.phase === 'block' && g.turn === FOE ? blkCount(c, p) : ''}`; if (ui.focusAtk === c.uid) extra += ' focus'; } }
     if (p === ME && g.phase === 'block' && g.turn === FOE && blockableNow(g, { ...c, guardian: true })) extra += ' can';
     if (assigned.has(c.uid)) { extra += ' blocking'; badge = `<b class="badge blk">${blkLabel(c.uid)}</b>`; }
     return `<div class="slot">${cardBack(c.uid, { size: 'g', extra: `guardian${extra}` })}${badge}</div>`;
@@ -547,7 +552,7 @@ function actionButtons(g) {
   if (g.phase === 'block') return `<div class="hint wait"><span class="spinner"></span>${ui.online ? '相手がブロックを選んでいます…' : 'CPUが考え中…'}</div>`;
   if (g.turn !== ME) return `<div class="hint wait"><span class="spinner"></span>${ui.online ? '相手の番です…' : 'CPUが考え中…'}</div>`;
   if (ui.mode === 'attack') return `<button class="btn ghost" data-act="cancel">やめる</button><button class="btn danger" data-act="attack" ${ui.picks.length ? '' : 'disabled'}>アタック（${ui.picks.length}体）</button>`;
-  const canBattle = !g.battleUsed && g.players[ME].field.some((c) => canAttackWith(g, ME, c));
+  const canBattle = !g.battleUsed && [...g.players[ME].field, ...g.players[ME].guardians].some((c) => canAttackWith(g, ME, c));
   return `<button class="btn ghost" data-act="battle" ${canBattle ? '' : 'disabled'}>バトル</button><button class="btn primary" data-act="end">ターン終了</button>`;
 }
 
@@ -952,7 +957,7 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 // 自動テスト用の入口
-window.__ijinden = { ui, act, seat: () => ({ ME, FOE }) };
+window.__ijinden = { ui, act, render, seat: () => ({ ME, FOE }) };
 
 // 画面のタップ音（ボタンとカード）
 unlockAudio();

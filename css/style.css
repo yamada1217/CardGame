@@ -566,3 +566,18 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 @keyframes bf-shock { to { transform: translate(-50%, -50%) scale(7); opacity: 0; } }
 @keyframes bf-shard { 0% { transform: none; opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) rotate(var(--r)) scale(.7); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .bf-lines, .bf-mote { display: none; } }
+
+/* ほかのカードの能力で得ているもの（即応・剣術など） */
+.card .gains { position: absolute; right: 3px; top: 24%; left: 30%; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; z-index: 1; pointer-events: none; }
+.card .gains span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 8px; font-weight: 800; line-height: 1.3; padding: 0 4px; border-radius: 4px; background: rgba(20, 60, 40, .88); color: #b8ffd6; border: 1px solid rgba(120, 255, 180, .55); }
+.card.s .gains { top: 22%; right: 2px; }
+.card.s .gains span { font-size: 7px; padding: 0 3px; }
+.card .pw.down { color: #ff9a9a; border-color: #ff6b6b; }
+.zoom-gains { margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 12px; }
+.zoom-gains b { width: 100%; color: #8dffbf; font-size: 12px; }
+.zoom-gains span { padding: 3px 8px; border-radius: 999px; background: rgba(20, 60, 40, .9); color: #b8ffd6; border: 1px solid rgba(120, 255, 180, .45); }
+/* イジンになっているガーディアン（円形闘技場など） */
+.card.back.as-ijin { box-shadow: 0 0 0 2px #7fd3ff, 0 0 14px -2px #7fd3ff; }
+.card.back.as-ijin.can { box-shadow: 0 0 0 2px var(--mine), 0 0 18px -2px var(--mine); }
+.card.back.as-ijin.picked { box-shadow: 0 0 0 3px var(--danger), 0 10px 24px -6px var(--danger); }
+.badge.gpw { top: auto; bottom: -6px; right: 50%; transform: translateX(50%); width: auto; min-width: 34px; padding: 0 5px; border-radius: 8px; background: #0d0a08; border: 1.5px solid #7fd3ff; color: #cdeeff; font-weight: 900; font-size: 11px; }
