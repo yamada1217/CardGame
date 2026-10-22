@@ -1,12 +1,13 @@
 import { CARDS, COLORS, DECKS, LEGACY_TEXT } from './cards.js';
 import { createGame, applyAction, def, checkPlay, canAttackWith, canBlockWith, canBlockPair, canStand, power, levelSum, pressure, effectiveLevel, waitingFor, findOnBoard } from './engine.js';
-import { cpuAction } from './ai.js';
+import { cpuAction, CPU_LEVELS } from './ai.js';
 import { cardFace as viewCardFace, cardBack, esc } from './cardview.js';
 import { zoomCard, closeZoom } from './zoom.js';
 import { planFx, runFx } from './fx.js';
 import { sfx, isMuted, setMuted, unlockAudio } from './sfx.js';
 import { onlineAvailable, hostRoom, joinRoom, roomUrl, savedSession } from './online.js';
-import { usableDecks, deckForMatch, sanitizeDeck, deckColors } from './decks.js';
+import { usableDecks, deckForMatch, sanitizeDeck, deckColors, expand } from './decks.js';
+import { CPU_DECKS, resolveDeck } from './cpu-decks.js';
 import { openDeckList } from './builder.js';
 
 const $app = document.getElementById('app');
@@ -21,6 +22,8 @@ const CPU_DELAY = 650;
 const ui = {
   screen: 'title',
   myDeck: load('ijinden.deck') || 'R01', // 'R01' などのスターター、または自作の 'u:<id>'
+  cpuLevel: load('ijinden.cpuLevel') || 'normal', // CPUの強さ：easy / normal / hard
+  cpuFoe: load('ijinden.cpuFoe') || 'random', // CPUの相手：'random' か、デッキのキー
   game: null,
   mode: null,        // null | 'attack'
   picks: [],         // アタッカー選択
@@ -107,7 +110,7 @@ function renderTitle() {
   const nameEl = document.getElementById('name');
   nameEl.oninput = () => { ui.name = nameEl.value; store('ijinden.name', ui.name); };
   document.getElementById('sound').onclick = (e) => { e.stopPropagation(); setMuted(!isMuted()); e.currentTarget.textContent = isMuted() ? '🔇' : '🔊'; sfx('tap'); };
-  document.getElementById('start-cpu').onclick = () => pickDeck('CPU対戦', startCpuGame);
+  document.getElementById('start-cpu').onclick = () => pickDeck('CPU対戦', pickLevel);
   document.getElementById('start-online').onclick = () => (canOnline ? pickDeck('フレンド対戦', startHost) : toast('オンライン対戦はもうすぐ使えるようになります'));
   document.getElementById('open-builder').onclick = openBuilder;
   const jb = document.getElementById('join');
@@ -155,14 +158,81 @@ function resetBoardUi() {
   closeSheet();
 }
 
+// CPUの強さを選ぶ
+const LEVEL_NOTE = { easy: '迷ったり見落としたりする。はじめての人に', normal: '決まった手順で堅実に戦う', hard: '手を先読みして一番よい手を選ぶ' };
+function pickLevel() {
+  vibrate();
+  if (!CPU_LEVELS[ui.cpuLevel]) ui.cpuLevel = 'normal';
+  const s = openSheet(`<h3>CPU対戦：強さを選ぶ</h3>
+    <div class="levels">${Object.entries(CPU_LEVELS).map(([k, v], i) => `
+      <button class="level lv-${k} ${ui.cpuLevel === k ? 'on' : ''}" data-level="${k}"><span class="stars">${'★'.repeat(i + 1)}${'☆'.repeat(2 - i)}</span><b>${v}</b><small>${LEVEL_NOTE[k]}</small></button>`).join('')}
+    </div>
+    <div class="sheet-actions row"><button class="btn ghost" data-go="back">戻る</button><button class="btn primary" data-go="next">次へ</button></div>`);
+  s.querySelectorAll('[data-level]').forEach((b) => b.onclick = () => {
+    ui.cpuLevel = b.dataset.level;
+    s.querySelectorAll('[data-level]').forEach((x) => x.classList.toggle('on', x === b));
+    vibrate();
+  });
+  s.querySelector('[data-go="back"]').onclick = () => pickDeck('CPU対戦', pickLevel);
+  s.querySelector('[data-go="next"]').onclick = () => { store('ijinden.cpuLevel', ui.cpuLevel); pickFoe(); };
+}
+
+// CPUの相手を選ぶ。ランダムは強豪デッキ集から、カスタムはスターターと自作デッキから選ぶ
+function pickFoe() {
+  const decks = usableDecks().filter((d) => d.ok);
+  if (!decks.some((d) => d.key === ui.cpuFoe)) ui.cpuFoe = 'random';
+  const row = (d) => `
+    <button class="deck ${ui.cpuFoe === d.key ? 'on' : ''}" data-foe="${esc(d.key)}">
+      <span class="deck-colors">${deckColors(d.cards).map((c) => `<i class="dot c-${c}"></i>`).join('') || '<i class="dot"></i>'}</span>
+      <span class="deck-name">${esc(d.name)}</span>
+      <span class="deck-count">${d.cards.length}枚</span>
+    </button>`;
+  const mine = decks.filter((d) => !d.starter), starters = decks.filter((d) => d.starter);
+  const s = openSheet(`<h3>CPU対戦（${CPU_LEVELS[ui.cpuLevel]}）：相手を選ぶ</h3>
+    <div class="foe-modes">
+      <button class="foe-mode" data-mode="random"><b>ランダム</b><small>大会優勝などの強豪デッキ${CPU_DECKS.length}種から</small></button>
+      <button class="foe-mode" data-mode="custom"><b>カスタム</b><small>相手のデッキを選ぶ</small></button>
+    </div>
+    <div class="deck-choices foe-list">
+      ${mine.length ? `<p class="group-label">自作デッキ</p>${mine.map(row).join('')}` : ''}
+      <p class="group-label">スターター</p>${starters.map(row).join('')}
+    </div>
+    <div class="sheet-actions row"><button class="btn ghost" data-go="back">戻る</button><button class="btn primary" data-go="start">対戦開始</button></div>`, 'tall');
+  const sync = () => {
+    const custom = ui.cpuFoe !== 'random';
+    s.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('on', (b.dataset.mode === 'custom') === custom));
+    s.querySelector('.foe-list').classList.toggle('off', !custom);
+    s.querySelectorAll('[data-foe]').forEach((x) => x.classList.toggle('on', x.dataset.foe === ui.cpuFoe));
+  };
+  s.querySelectorAll('[data-mode]').forEach((b) => b.onclick = () => {
+    ui.cpuFoe = b.dataset.mode === 'random' ? 'random' : (ui.cpuFoe !== 'random' ? ui.cpuFoe : starters.find((d) => d.key !== ui.myDeck)?.key || 'R01');
+    sync(); vibrate();
+  });
+  s.querySelectorAll('[data-foe]').forEach((b) => b.onclick = () => { ui.cpuFoe = b.dataset.foe; sync(); vibrate(); });
+  s.querySelector('[data-go="back"]').onclick = () => pickDeck('CPU対戦', pickLevel);
+  s.querySelector('[data-go="start"]').onclick = () => { store('ijinden.cpuFoe', ui.cpuFoe); closeSheet(); startCpuGame(); };
+  sync();
+}
+
+// 相手のデッキと名前を決める。ランダムは毎回引き直す
+function foeDeck() {
+  if (ui.cpuFoe !== 'random') {
+    const deck = deckForMatch(ui.cpuFoe);
+    if (deck) return { deck, name: usableDecks().find((d) => d.key === ui.cpuFoe)?.name || 'CPU' };
+  }
+  const pool = CPU_DECKS.map((d) => ({ d, r: resolveDeck(d) })).filter((x) => !x.r.missing.length);
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  return pick ? { deck: expand(pick.r.cards), name: pick.d.name } : { deck: 'R01', name: DECKS.R01.name };
+}
+
 function startCpuGame() {
   leaveOnline();
-  const others = Object.keys(DECKS).filter((k) => k !== ui.myDeck);
-  const other = others[Math.floor(Math.random() * others.length)];
+  const foe = foeDeck();
   ME = 0; FOE = 1;
   resetBoardUi();
-  ui.game = createGame({ names: [myName(), 'CPU'], decks: [myDeckForMatch(), other] });
+  ui.game = createGame({ names: [myName(), `CPU（${CPU_LEVELS[ui.cpuLevel] || 'ふつう'}）`], decks: [myDeckForMatch(), foe.deck] });
   render();
+  toast(`相手のデッキ：${foe.name}`);
   cpuLoop();
 }
 
@@ -544,7 +614,7 @@ async function cpuLoop() {
       if (!(Array.isArray(w) ? w.includes(FOE) : w === FOE)) break;
       await sleep(CPU_DELAY);
       if (ui.screen !== 'game') break;
-      const action = cpuAction(ui.game, FOE);
+      const action = cpuAction(ui.game, FOE, ui.cpuLevel);
       if (!action) break;
       step(FOE, action);
     }
