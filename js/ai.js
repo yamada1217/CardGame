@@ -137,6 +137,11 @@ function easyAction(state, p) {
     return { type: 'choose', picks: [...pr.options].sort(() => Math.random() - .5).slice(0, n) };
   }
   if (base.type === 'mulligan') return { type: 'mulligan', redo: false };
+  if (base.type === 'placeMana' && Math.random() < .35) {
+    // マリョクの置き方が雑：手札から適当な1枚を置いてしまう
+    const c = rand(state.players[p].hand);
+    if (c) return { type: 'placeMana', uid: c.uid, faceUp: def(c).type === 'maryoku' && !rule(state, 'noFaceUpMana', p) };
+  }
   if (base.type === 'declareBlocks') {
     // ブロックは半分くらい見落とす
     const blocks = {};
@@ -186,9 +191,26 @@ function rollout(s, until, cap = 400) {
   return s;
 }
 
+// 先読みは、CPUに見えない情報（相手の手札・山札・伏せたガーディアン、自分の山札と伏せたガーディアン）を
+// 見えない札どうしで混ぜ直した盤面で行う。人と同じ条件で考えるため（相手の手札を覗かない）
+function determinize(state, p, keepMyDeck = false) {
+  const s = JSON.parse(JSON.stringify(state));
+  const mix = (zones) => {
+    const slots = zones.flatMap((z) => z.map((c, i) => ({ z, i })));
+    const ids = slots.map(({ z, i }) => z[i].id);
+    for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; }
+    slots.forEach(({ z, i }, k) => { z[i].id = ids[k]; });
+  };
+  const me = s.players[p], foe = s.players[1 - p];
+  mix([foe.hand, foe.deck, foe.guardians.filter((c) => !c.faceUp)]);
+  if (!keepMyDeck) mix([me.deck, me.guardians.filter((c) => !c.faceUp)]);
+  return s;
+}
+
 // 候補の手を試して一番よいものを返す
-function best(state, p, cands, until) {
+function best(state, p, cands, until, keepMyDeck = false) {
   let top = null, topV = -Infinity;
+  state = determinize(state, p, keepMyDeck);
   const seen = new Set();
   for (const a of cands) {
     const key = JSON.stringify(a);
@@ -211,7 +233,7 @@ function hardAction(state, p) {
   if (base.type === 'choose') {
     const pr = state.prompt;
     if (pr.info || pr.labels || pr.options.length > 10 || !(pr.min === 1 && pr.max === 1)) return base;
-    return best(state, p, [base, ...pr.options.map((u) => ({ type: 'choose', picks: [u] }))], endOfTurn) || base;
+    return best(state, p, [base, ...pr.options.map((u) => ({ type: 'choose', picks: [u] }))], endOfTurn, true) || base; // 選択肢に出ている札は見えている
   }
   if (base.type === 'declareBlocks') {
     const guardOnly = {};
