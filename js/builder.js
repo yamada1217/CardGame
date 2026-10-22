@@ -2,7 +2,7 @@
 // 上にデッキの枚数とレベル分布、下にカード一覧。一覧のカードはタップで1枚追加、長押しで拡大表示。
 // 「デッキ」タブでは入れたカードを確認して増減できる。編集内容は自動で保存する。
 import { CARDS, COLORS, DECKS } from './cards.js';
-import { listDecks, getDeck, saveDeck, deleteDeck, newDeck, starterCards, total, copyLimit, validate, playable, deckColors, MIN_CARDS, MAX_CARDS } from './decks.js';
+import { listDecks, getDeck, saveDeck, deleteDeck, newDeck, starterCards, total, copyLimit, capFor, sameName, validate, playable, deckColors, MIN_CARDS, MAX_CARDS } from './decks.js';
 import { zoomCard } from './zoom.js';
 
 const TYPE_LABEL = { ijin: 'イジン', haikei: 'ハイケイ', mahou: 'マホウ', maryoku: 'マリョク' };
@@ -225,7 +225,7 @@ function summaryHtml() {
 function tileHtml(c) {
   const n = deck.cards[c.id] || 0;
   const ok = playable(c.id);
-  const lim = copyLimit(c);
+  const lim = capFor(deck.cards, c);
   const col = c.colors[0] || c.color || 'none';
   return `
     <button class="tile c-${col} r-${esc(c.rarity || 'N')} t-${c.type}${ok ? '' : ' locked'}${n ? ' in' : ''}" data-id="${esc(c.id)}" ${c.colors.length > 1 ? `style="--c2: var(--${c.colors[1]})"` : ''}>
@@ -251,7 +251,7 @@ function deckListHtml() {
   return rows.map(({ c, k }) => {
     const head = c.type !== lastType ? `<h4>${TYPE_LABEL[c.type]}</h4>` : '';
     lastType = c.type;
-    const max = copyLimit(c);
+    const max = capFor(deck.cards, c);
     return `${head}
       <div class="d-row c-${c.color || 'none'}${playable(c.id) ? '' : ' locked'}">
         <span class="d-lv">${c.level}</span>
@@ -405,7 +405,7 @@ function add(id, tileEl) {
   const c = byId(id);
   if (!playable(id)) { ctx.toast('このカードは効果を準備中のため、まだデッキに入れられません'); return false; }
   const n = deck.cards[id] || 0;
-  if (n >= copyLimit(c)) { ctx.toast(`同じカードは${n}枚までです`); return false; }
+  if (n >= capFor(deck.cards, c)) { ctx.toast(`同じ名前のカードは合わせて${copyLimit(c)}枚までです`); return false; }
   if (total(deck.cards) >= MAX_CARDS) { ctx.toast(`デッキは${MAX_CARDS}枚までです`); return false; }
   deck.cards[id] = n + 1;
   ctx.vibrate(10);
@@ -431,13 +431,15 @@ function afterCountChange(id, tileEl) {
   if (tc) tc.textContent = total(deck.cards);
   const list = document.getElementById('b-decklist');
   if (list) list.innerHTML = deckListHtml();
-  const tile = tileEl || ctx.app.querySelector(`.tile[data-id="${CSS.escape(id)}"]`);
-  if (tile) {
-    const c = byId(id), n = deck.cards[id] || 0, lim = copyLimit(c);
+  // 同じ名前のカード（色違いなど）は上限を分け合うので、まとめて表示を直す
+  for (const sid of sameName(byId(id))) {
+    const tile = sid === id && tileEl ? tileEl : ctx.app.querySelector(`.tile[data-id="${CSS.escape(sid)}"]`);
+    if (!tile) continue;
+    const c = byId(sid), n = deck.cards[sid] || 0, lim = capFor(deck.cards, c);
     const cnt = tile.querySelector('[data-count]');
     if (cnt) cnt.textContent = n ? `${n}${lim === Infinity ? '' : `/${lim}`}` : '';
     tile.classList.toggle('in', n > 0);
-    tile.classList.remove('bump'); void tile.offsetWidth; tile.classList.add('bump');
+    if (sid === id) { tile.classList.remove('bump'); void tile.offsetWidth; tile.classList.add('bump'); }
   }
 }
 
@@ -451,7 +453,7 @@ function showCard(id, from = 0) {
   const ok = playable(id);
   const actions = ok ? [
     { label: '1枚減らす', disabled: !n(), onClick: () => { remove(id); showCard(id); } },
-    { label: `1枚追加（いま${n()}枚）`, primary: true, disabled: n() >= copyLimit(c), onClick: () => { add(id); showCard(id); } },
+    { label: `1枚追加（いま${n()}枚）`, primary: true, disabled: n() >= capFor(deck.cards, c), onClick: () => { add(id); showCard(id); } },
   ] : [];
   const ids = f.tab === 'list' ? catalog.filter(matches).map((x) => x.id) : deckRows().map((r) => r.c.id);
   const i = ids.indexOf(id);
