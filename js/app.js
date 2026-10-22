@@ -4,6 +4,7 @@ import { cpuAction, CPU_LEVELS } from './ai.js';
 import { cardFace as viewCardFace, cardBack, esc } from './cardview.js';
 import { zoomCard, closeZoom } from './zoom.js';
 import { planFx, runFx, fxWait } from './fx.js';
+import { rollDice } from './dice.js';
 import { sfx, isMuted, setMuted, unlockAudio } from './sfx.js';
 import { onlineAvailable, hostRoom, joinRoom, roomUrl, savedSession } from './online.js';
 import { usableDecks, deckForMatch, sanitizeDeck, deckColors, expand } from './decks.js';
@@ -545,7 +546,16 @@ function renderGame() {
 
   bindGame();
   if (g.phase === 'over') showGameOver();
-  else syncDecisionSheet(g);
+  else if (!diceFirst(g)) syncDecisionSheet(g);
+}
+
+// 手札を決める前に、サイコロで先攻を決める演出を一度だけ見せる（見ている間は手札のシートを出さない）
+function diceFirst(g) {
+  if (ui.diceBusy) return true;
+  if (g.phase !== 'mulligan' || !g.dice || g.mulligan[ME] !== null || ui.diceSeen === g.seed) return false;
+  ui.diceBusy = true;
+  rollDice(g.dice, ME, () => { ui.diceBusy = false; ui.diceSeen = g.seed; if (ui.screen === 'game' && ui.game?.seed === g.seed) render(); });
+  return true;
 }
 
 // 割り当て中のアタッカーに対してブロックできるか
