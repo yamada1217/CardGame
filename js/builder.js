@@ -5,6 +5,7 @@ import { CARDS, COLORS, DECKS } from './cards.js';
 import { listDecks, getDeck, saveDeck, deleteDeck, newDeck, starterCards, total, copyLimit, capFor, sameName, validate, playable, deckColors, MIN_CARDS, MAX_CARDS } from './decks.js';
 import { zoomCard } from './zoom.js';
 import { bakedArt } from './art.js';
+import { syncCode, syncAvailable, createSync, joinSync, stopSync, formatSync, syncUrl, onSync } from './sync.js';
 
 const TYPE_LABEL = { ijin: 'イジン', haikei: 'ハイケイ', mahou: 'マホウ', maryoku: 'マリョク' };
 const TYPE_ORDER = ['ijin', 'haikei', 'mahou', 'maryoku'];
@@ -92,12 +93,100 @@ function renderList() {
       <div class="b-scroll">
         <button class="new-deck" id="b-new"><span class="plus">＋</span>新しいデッキを作る</button>
         ${decks.length ? decks.map(deckRow).join('') : `<p class="b-empty">まだ自作デッキはありません。<br>スターターをもとにすると、すぐに作れます。</p>`}
-        <p class="b-note">デッキは40枚以上。同じカードは4枚まで（ストーンは何枚でも）。<br>デッキはこの端末に保存されます。</p>
+        ${syncHtml()}
+        <p class="b-note">デッキは40枚以上。同じ名前のカードは4枚まで（ストーンは何枚でも）。<br>${syncCode() ? 'デッキは引き継ぎコードでつないだ端末どうしで自動的にそろいます。' : 'デッキはこの端末に保存されます。ほかの端末でも使うときは「引き継ぎコード」を作ってください。'}</p>
       </div>
     </main>`;
   document.getElementById('b-back').onclick = () => ctx.exit();
+  bindSync();
   document.getElementById('b-new').onclick = showNewDeck;
   ctx.app.querySelectorAll('[data-open]').forEach((b) => b.onclick = () => openEditor(b.dataset.open));
+}
+
+// ---------- 引き継ぎコード（ほかの端末・ブラウザでも同じデッキを使う） ----------
+
+// ほかの端末から届いたら一覧を描き直す
+onSync((why) => { if (why === 'pull' && ctx && !deck && document.querySelector('.builder.list-screen')) renderList(); });
+
+function syncHtml() {
+  if (!syncAvailable()) return '';
+  const code = syncCode();
+  if (code) {
+    return `<section class="sync-box on">
+      <div class="sync-head"><b>引き継ぎコード</b><span class="sync-state">同期中</span></div>
+      <div class="sync-code">${esc(formatSync(code))}</div>
+      <p class="sync-note">ほかの端末でこのコードを入れる（またはリンクを開く）と、同じデッキを使えます。他人には教えないでください。</p>
+      <div class="sync-actions">
+        <button class="btn ghost" data-sync="copy">コードをコピー</button>
+        <button class="btn ghost" data-sync="share">リンクを送る</button>
+      </div>
+      <button class="sync-stop" data-sync="stop">この端末の同期をやめる</button>
+    </section>`;
+  }
+  return `<section class="sync-box">
+    <div class="sync-head"><b>ほかの端末でも同じデッキを使う</b></div>
+    <p class="sync-note">スマホとパソコン、別のブラウザなどで、自作デッキを共有できます。</p>
+    <div class="sync-actions">
+      <button class="btn primary" data-sync="create">引き継ぎコードを作る</button>
+      <button class="btn ghost" data-sync="join">コードを入力</button>
+    </div>
+  </section>`;
+}
+
+function bindSync() {
+  ctx.app.querySelectorAll('[data-sync]').forEach((b) => b.onclick = () => syncAction(b.dataset.sync, b));
+}
+
+async function syncAction(kind, btn) {
+  const code = syncCode();
+  try {
+    if (kind === 'create') {
+      btn.disabled = true; btn.textContent = '作成中…';
+      await createSync();
+      ctx.toast('引き継ぎコードを作りました');
+      return renderList();
+    }
+    if (kind === 'join') return showJoin();
+    if (kind === 'copy') {
+      await navigator.clipboard.writeText(formatSync(code));
+      return ctx.toast('コードをコピーしました');
+    }
+    if (kind === 'share') {
+      const url = syncUrl(code);
+      if (navigator.share) return await navigator.share({ title: 'イジンデン デッキ引き継ぎ', text: '自分の別の端末で開いてください', url }).catch(() => {});
+      await navigator.clipboard.writeText(url);
+      return ctx.toast('リンクをコピーしました');
+    }
+    if (kind === 'stop') {
+      if (await ctx.confirmSheet('この端末の同期をやめますか？（デッキはこの端末に残ります。コードを入れ直せばまた同期できます）', 'やめる')) { stopSync(); renderList(); }
+    }
+  } catch (e) {
+    ctx.toast(e?.message || 'うまくいきませんでした');
+    if (kind === 'create') renderList();
+  }
+}
+
+function showJoin() {
+  const s = ctx.openSheet(`<h3>引き継ぎコードを入力</h3>
+    <p class="sub-note">ほかの端末の「デッキ構築」に出ている10文字のコードを入れてください。この端末のデッキは消えずに合わさります。</p>
+    <input class="sync-input" id="sync-in" inputmode="latin" autocapitalize="characters" autocomplete="off" maxlength="12" placeholder="XXXXX-XXXXX">
+    <div class="sheet-actions"><button class="btn ghost" data-j="0">戻る</button><button class="btn primary" data-j="1">つなぐ</button></div>`);
+  const input = s.querySelector('#sync-in');
+  setTimeout(() => input.focus(), 50);
+  s.querySelector('[data-j="0"]').onclick = ctx.closeSheet;
+  s.querySelector('[data-j="1"]').onclick = async (e) => {
+    const b = e.currentTarget;
+    b.disabled = true; b.textContent = '確認中…';
+    try {
+      await joinSync(input.value);
+      ctx.closeSheet();
+      ctx.toast('つなぎました。デッキをそろえました');
+      renderList();
+    } catch (err) {
+      ctx.toast(err?.message || 'つなげませんでした');
+      b.disabled = false; b.textContent = 'つなぐ';
+    }
+  };
 }
 
 function deckRow(d) {

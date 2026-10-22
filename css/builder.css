@@ -169,3 +169,17 @@
 .tile > .t-art { opacity: 0; transition: opacity .25s; }
 .tile > .t-art.on { opacity: 1; }
 .tile.t-maryoku > .t-art.on { opacity: .85; }
+
+/* 引き継ぎコード（ほかの端末でも同じデッキを使う） */
+.sync-box { margin-top: 18px; padding: 14px; border-radius: var(--radius); background: var(--panel); border: 1px solid var(--line); }
+.sync-box.on { border-color: rgba(111, 177, 255, .45); background: linear-gradient(180deg, rgba(63, 127, 226, .12), var(--panel)); }
+.sync-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 14px; }
+.sync-state { font-size: 11px; font-weight: 700; color: #8fd0ff; padding: 2px 8px; border-radius: 999px; background: rgba(63, 127, 226, .2); }
+.sync-state::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: #6fe0a0; vertical-align: 1px; }
+.sync-code { margin: 10px 0 4px; text-align: center; font: 800 24px/1.2 ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: .12em; color: var(--gold-2); user-select: all; }
+.sync-note { margin: 6px 0 10px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.sync-actions { display: flex; gap: 8px; }
+.sync-actions .btn { flex: 1; min-width: 0; padding-left: 8px; padding-right: 8px; font-size: 13px; }
+.sync-stop { display: block; margin: 10px auto 0; color: var(--muted); font-size: 12px; text-decoration: underline; }
+.sync-input { width: 100%; margin: 6px 0 14px; padding: 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--bg-2); color: var(--text); text-align: center; font: 800 22px/1.2 ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: .12em; text-transform: uppercase; }
+.sync-input:focus { outline: none; border-color: var(--gold); }
