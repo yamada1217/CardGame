@@ -208,7 +208,8 @@ function connect(db, code, role, h) {
     code, role, me,
     // Firebase は undefined を保存できないので JSON を通して消す
     send: (action) => db.push(`${base}/games/${game}`, JSON.parse(JSON.stringify({ p: me, ...action }))),
-    rematch: () => role === 'host' && room?.start && startGame(room.start.n + 1),
+    // どちらが押しても次の試合を始める（同時に押しても、ルールで2つ目の書き込みは弾かれる）
+    rematch: () => room?.start && startGame(room.start.n + 1).catch(() => {}),
     leave: () => { db.set(`${base}/presence/${role}`, false); try { store().removeItem('ijinden.session'); } catch { /* 無視 */ } },
   };
 }

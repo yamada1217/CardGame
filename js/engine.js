@@ -386,6 +386,12 @@ export function applyAction(prev, p, action) {
   if (s.phase === 'over') return err('ゲームは終了しています');
   const pl = s.players[p];
 
+  // 降参（いつでもできる）
+  if (action.type === 'resign') {
+    endGame(s, opp(p), `${pl.name}が降参した`);
+    return { ok: true, state: s };
+  }
+
   if (action.type === 'mulligan') {
     if (s.phase !== 'mulligan' || s.mulligan[p] !== null) return err('今は引き直しできません');
     s.mulligan[p] = !!action.redo;

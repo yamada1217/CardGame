@@ -208,11 +208,17 @@ function determinize(state, p, keepMyDeck = false) {
 }
 
 // 候補の手を試して一番よいものを返す
+// 遅いスマホでも画面が固まらないよう、考える時間に上限を設ける（最初の候補はいつも見る）
+const THINK_MS = 700;
+const now = () => globalThis.performance?.now?.() ?? Date.now();
+
 function best(state, p, cands, until, keepMyDeck = false) {
   let top = null, topV = -Infinity;
   state = determinize(state, p, keepMyDeck);
   const seen = new Set();
+  const deadline = now() + THINK_MS;
   for (const a of cands) {
+    if (top && now() > deadline) break;
     const key = JSON.stringify(a);
     if (seen.has(key)) continue;
     seen.add(key);
