@@ -154,3 +154,18 @@
 .type-seg { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 4px; margin: 0 12px 8px; border-radius: 14px; background: var(--panel); }
 .type-seg button { height: 34px; border-radius: 10px; font-size: 12.5px; font-weight: 800; color: var(--muted); transition: background .2s, color .2s; }
 .type-seg button.on { background: var(--gold-2); color: #2a1d08; box-shadow: 0 2px 8px -2px rgba(241, 212, 143, .5); }
+
+/* 一覧のタイルにも対戦と同じ絵を敷く */
+.tile > .t-art { position: absolute; inset: 2px; border-radius: 5px; background: center / cover no-repeat; overflow: hidden; }
+.tile > .t-art::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 38%, rgba(12, 9, 7, .55) 66%, rgba(12, 9, 7, .92)); }
+.tile.t-maryoku > .t-art { opacity: .85; }
+.tile.t-maryoku > .t-art::after { display: none; }
+.tile.has-art { justify-content: flex-end; padding-bottom: 6px; }
+.tile.has-art.t-ijin { padding-bottom: 24px; }
+.tile.has-art .t-emblem { display: none; }
+.tile.has-art .t-name { color: #fff; text-shadow: 0 1px 2px #000, 0 0 8px #000; }
+.tile.has-art .t-type { color: #d6cbbb; text-shadow: 0 1px 2px #000; }
+.tile.t-maryoku .t-emblem, .tile.t-maryoku .t-name { text-shadow: 0 1px 3px #000, 0 0 10px #000; }
+.tile > .t-art { opacity: 0; transition: opacity .25s; }
+.tile > .t-art.on { opacity: 1; }
+.tile.t-maryoku > .t-art.on { opacity: .85; }

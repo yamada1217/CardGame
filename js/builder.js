@@ -4,6 +4,7 @@
 import { CARDS, COLORS, DECKS } from './cards.js';
 import { listDecks, getDeck, saveDeck, deleteDeck, newDeck, starterCards, total, copyLimit, capFor, sameName, validate, playable, deckColors, MIN_CARDS, MAX_CARDS } from './decks.js';
 import { zoomCard } from './zoom.js';
+import { bakedArt } from './art.js';
 
 const TYPE_LABEL = { ijin: 'イジン', haikei: 'ハイケイ', mahou: 'マホウ', maryoku: 'マリョク' };
 const TYPE_ORDER = ['ijin', 'haikei', 'mahou', 'maryoku'];
@@ -229,7 +230,8 @@ function tileHtml(c) {
   const lim = capFor(deck.cards, c);
   const col = c.colors[0] || c.color || 'none';
   return `
-    <button class="tile c-${col} r-${esc(c.rarity || 'N')} t-${c.type}${ok ? '' : ' locked'}${n ? ' in' : ''}" data-id="${esc(c.id)}" ${c.colors.length > 1 ? `style="--c2: var(--${c.colors[1]})"` : ''}>
+    <button class="tile c-${col} r-${esc(c.rarity || 'N')} t-${c.type}${c.type !== 'maryoku' ? ' has-art' : ''}${ok ? '' : ' locked'}${n ? ' in' : ''}" data-id="${esc(c.id)}" ${c.colors.length > 1 ? `style="--c2: var(--${c.colors[1]})"` : ''}>
+      <span class="t-art"></span>
       <span class="t-lv">${c.level}</span>
       ${c.type === 'mahou' ? `<span class="t-cost">${c.cost ?? ''}</span>` : ''}
       <span class="t-emblem">${esc(c.type === 'maryoku' ? (COLORS[c.color]?.name || '魔') : c.name[0])}</span>
@@ -336,13 +338,13 @@ function drawBlocks(grid) {
   const per = BLOCK * vg.cols, span = BLOCK * vg.rowH;
   const last = Math.ceil(vg.list.length / per) - 1;
   const from = Math.max(0, Math.floor(y / span) - 1), to = Math.min(last, Math.floor((y + body.clientHeight) / span) + 1);
-  for (let b = from; b <= to; b++) drawBlock(grid, b);
+  for (let b = from; b <= to; b++) paintBlock(drawBlock(grid, b));
   clearTimeout(vg.idle);
   vg.idle = setTimeout(() => prefetch(grid, vg.list), 300);
 }
 
 function drawBlock(grid, b) {
-  if (vg.blocks.has(b)) return;
+  if (vg.blocks.has(b)) return vg.blocks.get(b);
   const per = BLOCK * vg.cols;
   const el = document.createElement('div');
   el.className = 'b-part';
@@ -350,6 +352,18 @@ function drawBlock(grid, b) {
   el.innerHTML = vg.list.slice(b * per, (b + 1) * per).map(tileHtml).join('');
   grid.appendChild(el);
   vg.blocks.set(b, el);
+  return el;
+}
+
+// 絵は重いので、見えている塊にだけ貼る（先回りで描いた塊は、見えたときに貼る）
+function paintBlock(el) {
+  if (!el || el.dataset.painted) return;
+  el.dataset.painted = '1';
+  el.querySelectorAll('.tile').forEach((t) => {
+    const art = t.querySelector('.t-art');
+    const c = byId(t.dataset.id);
+    if (art && c) bakedArt(c, (url) => { art.style.backgroundImage = url; art.classList.add('on'); });
+  });
 }
 
 // 描いていない塊を1つずつ、操作の合間に描いておく
