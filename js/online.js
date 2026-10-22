@@ -11,16 +11,21 @@ async function firebaseBackend() {
   const { initializeApp } = await import(SDK('app'));
   const db = await import(SDK('database'));
   const app = initializeApp(FIREBASE_CONFIG);
+  // ?emu=1 は開発用：手元の Firebase エミュレーターにつなぐ（本番のルールを貼る前に動作を確かめる）
+  const emu = new URLSearchParams(location.search).get('emu');
   // 匿名ログイン。ルールで「ログインした人だけ書ける」にして、いたずらを防ぐ
   let uid = null;
   try {
     const auth = await import(SDK('auth'));
-    uid = (await auth.signInAnonymously(auth.getAuth(app))).user.uid;
+    const a = auth.getAuth(app);
+    if (emu) auth.connectAuthEmulator(a, 'http://127.0.0.1:9099', { disableWarnings: true });
+    uid = (await auth.signInAnonymously(a)).user.uid;
   } catch (e) {
     console.warn('匿名ログインに失敗しました', e);
   }
   const d = db.getDatabase(app);
-  const r = (path) => db.ref(d, path);
+  if (emu) db.connectDatabaseEmulator(d, '127.0.0.1', 9000);
+  const r = (path) => (path ? db.ref(d, path) : db.ref(d)); // 空のパス（ルート）は ref(d) で指す
   return {
     uid,
     get: async (path) => (await db.get(r(path))).val(),
@@ -133,6 +138,7 @@ export function roomUrl(code) {
   u.searchParams.set('room', code);
   const b = new URLSearchParams(location.search).get('backend');
   if (b) u.searchParams.set('backend', b);
+  if (new URLSearchParams(location.search).get('emu')) u.searchParams.set('emu', '1');
   return u.toString();
 }
 
@@ -144,7 +150,8 @@ export async function hostRoom({ name, deck }, handlers) {
     code = newCode();
     if (!(await db.get(`rooms/${code}/host`))) break;
   }
-  await db.set(`rooms/${code}`, { created: db.serverTime(), host: { name, deck, cid: clientId() } });
+  // ルールは子ごとに書き込みを許しているので、部屋そのものへの set ではなく子への update で作る
+  await db.update(`rooms/${code}`, { created: db.serverTime(), host: { name, deck, cid: clientId() } });
   return connect(db, code, 'host', handlers);
 }
 

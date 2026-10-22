@@ -20,3 +20,7 @@
 フレンド登録（2026-10）で `users` `codes` `requests` `friends` `invites` のルールが増えました。`database.rules.json` を更新したら、Firebase コンソールの「Realtime Database」→「ルール」に中身を貼り直して「公開」してください。貼り直すまでは、フレンド登録の画面に「つなげませんでした」と表示されます（ほかの機能には影響しません）。
 
 デッキの引き継ぎコード（2026-10）で `saves` のルールも増えました。貼り直すまでは、デッキ構築の「引き継ぎコードを作る」が失敗します。
+
+## 開発用：エミュレーターでルールを確かめる
+
+本番にルールを貼る前に、手元の Firebase エミュレーター（無料）で同じルールを試せます。`firebase emulators:start --only auth,database --project ijinden-online-fbe1c` を `database.rules.json` を読む設定で起動し、`?emu=1` を付けてアプリを開くと、本番ではなくエミュレーターにつながります。
