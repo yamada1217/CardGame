@@ -130,7 +130,7 @@ export function battleStage(L, battle, snaps, root, me, shake) {
             const w = el('fx-word red', `left:${r.left + r.width / 2}px;top:${r.top + r.height / 2}px`);
             w.textContent = '撃破'; L.appendChild(w); later(900, () => w.remove());
           });
-          return;
+          continue;
         }
         if (res === 'bounce') {
           // 手札へ（自分は下、相手は上へ飛んでいく）
@@ -139,7 +139,7 @@ export function battleStage(L, battle, snaps, root, me, shake) {
           const w = el('fx-word blue', `left:${r.left + r.width / 2}px;top:${r.top + r.height / 2}px`);
           w.textContent = '手札へ'; L.appendChild(w); later(900, () => w.remove());
           later(T * .3, () => u.node.remove());
-          return;
+          continue;
         }
         // 持ち場に戻る：描き直した盤面の位置へ
         const target = find(root, u.uid);
@@ -150,5 +150,7 @@ export function battleStage(L, battle, snaps, root, me, shake) {
       }
       if (destroyed) { sfx('destroy'); shake(); }
     });
+    // 念のため、どの結果でも演出の終わりには呼び出したカードを片付ける
+    later(T * 1.1, () => units.forEach((u) => u.node.remove()));
   }
 }
