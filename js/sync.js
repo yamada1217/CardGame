@@ -31,6 +31,7 @@ export function syncUrl(code) {
   u.searchParams.set('sync', code);
   const b = new URLSearchParams(location.search).get('backend');
   if (b) u.searchParams.set('backend', b);
+  if (new URLSearchParams(location.search).get('emu')) u.searchParams.set('emu', '1');
   return u.toString();
 }
 

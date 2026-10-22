@@ -156,7 +156,16 @@ function* auraSources(s) {
 }
 
 // tgt が能力すべてを失っているか
+// 1回の stat の計算の中では盤面は変わらないので、「能力を失っているか」の結果を使い回す
+// （能力を失わせるカードが何枚もあると、問い合わせが入れ子で何度も繰り返されて極端に遅くなるため）
+let stripMemo = null, statMemo = null;
 export function stripped(s, tgt) {
+  if (!stripMemo) return strippedNow(s, tgt);
+  const key = `${tgt.inst.uid}|${tgt.zone}|${tgt.inst.id}`;
+  if (!stripMemo.has(key)) stripMemo.set(key, strippedNow(s, tgt));
+  return stripMemo.get(key);
+}
+function strippedNow(s, tgt) {
   for (const p of [0, 1]) {
     for (const zone of ['field', 'grave']) {
       for (const c of s.players[p][zone]) {
@@ -173,8 +182,12 @@ export function stat(s, x, where = null) {
   const f = where || findOnBoard(s, typeof x === 'string' ? x : x.uid);
   if (!f) return baseStat(s, x, 'hand');
   const { inst, zone } = f;
+  const outer = !stripMemo;
+  const key = `${inst.uid}|${zone}|${inst.id}`;
+  if (!outer && statMemo.has(key)) return statMemo.get(key); // 入れ子の問い合わせ（読むだけ）は使い回す
   const st = baseStat(s, inst, zone);
   if (guard.has(inst.uid) || zone === 'deck') return st;
+  if (outer) { stripMemo = new Map(); statMemo = new Map(); }
   guard.add(inst.uid);
   try {
     const tgt = { inst, p: f.p, zone };
@@ -217,7 +230,8 @@ export function stat(s, x, where = null) {
     if (post && !st.lost && zone === 'field') applyGrant(st, post(s, tgt, st));
     if (st.losePress) st.press = 0;
     if (st.kw.noSokuo) st.kw.sokuo = false;
-  } finally { guard.delete(inst.uid); }
+  } finally { guard.delete(inst.uid); if (outer) { stripMemo = null; statMemo = null; } }
+  if (!outer) statMemo.set(key, st);
   return st;
 }
 

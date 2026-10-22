@@ -177,7 +177,7 @@ async function openFriends() {
       <div class="f-row"><i class="f-dot ${f.online ? 'on' : ''}" title="${f.online ? 'オンライン' : 'オフライン'}"></i><span class="f-name">${esc(f.name)}<small>${f.online ? 'オンライン' : 'オフライン'}</small></span>
         <button class="icon-btn f-del" data-del="${esc(f.uid)}" aria-label="フレンドから外す">×</button>
         <button class="btn primary small" data-inv="${esc(f.uid)}" ${f.online ? '' : 'disabled'}>対戦に誘う</button></div>`).join('') || '<p class="fine">まだフレンドがいません。コードを教え合って申請しましょう。</p>'}`;
-    s.querySelectorAll('[data-yes]').forEach((b) => b.onclick = () => accept(b.dataset.yes).then(() => toast('フレンドになりました')).catch(() => toast('承認できませんでした')));
+    s.querySelectorAll('[data-yes]').forEach((b) => b.onclick = () => accept(b.dataset.yes).then(() => toast('フレンドになりました')).catch((e) => { console.warn('accept failed', e); toast('承認できませんでした'); }));
     s.querySelectorAll('[data-no]').forEach((b) => b.onclick = () => decline(b.dataset.no));
     s.querySelectorAll('[data-del]').forEach((b) => b.onclick = async () => {
       const f = friends.find((x) => x.uid === b.dataset.del);
