@@ -162,15 +162,16 @@ function renderEditor() {
       </nav>
       ${f.tab === 'list' ? `
         <div class="filters">
+          <div class="type-seg" role="tablist" aria-label="カードの種類">
+            <button class="${f.type ? '' : 'on'}" data-type="">すべて</button>
+            ${TYPE_ORDER.map((t) => `<button class="t-${t} ${f.type === t ? 'on' : ''}" data-type="${t}">${TYPE_LABEL[t]}</button>`).join('')}
+          </div>
           <div class="chips">
             ${[...COLOR_ORDER.filter(Boolean), 'none'].map((c) => `<button class="chip-btn color ${f.colors.has(c) ? 'on' : ''}" data-color="${c}"><i class="dot c-${c}"></i>${c === 'none' ? '無色' : COLORS[c].name}</button>`).join('')}
           </div>
           <div class="chips">
             <button class="chip-btn ${f.level ? '' : 'on'}" data-level="">Lv すべて</button>
             ${LEVELS.map((l) => `<button class="chip-btn ${f.level === l ? 'on' : ''}" data-level="${l}">${l === '1' ? '〜1' : l}</button>`).join('')}
-            <span class="chip-sep"></span>
-            <button class="chip-btn ${f.type ? '' : 'on'}" data-type="">種類 すべて</button>
-            ${TYPE_ORDER.map((t) => `<button class="chip-btn ${f.type === t ? 'on' : ''}" data-type="${t}">${TYPE_LABEL[t]}</button>`).join('')}
           </div>
           <div class="search-row">
             <input class="b-search" id="b-q" type="search" placeholder="名前・効果・特性で検索" value="${esc(f.q)}" enterkeyhint="search">

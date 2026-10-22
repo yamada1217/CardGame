@@ -149,3 +149,8 @@
 .b-grid.virtual { display: block; position: relative; padding: 0; }
 .b-part { position: absolute; left: 12px; right: 12px; display: grid; gap: 8px; contain: layout style; }
 .b-part .tile { aspect-ratio: auto; }
+
+/* カードの種類で絞り込むタブ */
+.type-seg { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 4px; margin: 0 12px 8px; border-radius: 14px; background: var(--panel); }
+.type-seg button { height: 34px; border-radius: 10px; font-size: 12.5px; font-weight: 800; color: var(--muted); transition: background .2s, color .2s; }
+.type-seg button.on { background: var(--gold-2); color: #2a1d08; box-shadow: 0 2px 8px -2px rgba(241, 212, 143, .5); }
