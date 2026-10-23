@@ -43,7 +43,9 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .link { color: var(--gold-2); text-decoration: underline; padding: 0; }
 
 /* ---------- タイトル ---------- */
-.title { height: 100%; display: flex; flex-direction: column; justify-content: center; gap: 28px; padding: calc(24px + var(--safe-top)) 20px calc(24px + var(--safe-bottom)); position: relative; }
+.title { height: 100%; display: flex; flex-direction: column; justify-content: flex-start; gap: 28px; padding: calc(24px + var(--safe-top)) 20px calc(24px + var(--safe-bottom)); position: relative; overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+/* 中身が画面より高いときは上が切れずにスクロールでき、低いときは上下中央に寄る */
+.title::before, .title::after { content: ''; flex: 1 0 0; margin: -14px 0; }
 .title-glow { position: absolute; inset: -20% -40% auto; height: 70%; background: radial-gradient(closest-side, rgba(216, 178, 106, .22), transparent); pointer-events: none; animation: breathe 6s ease-in-out infinite; }
 @keyframes breathe { 50% { opacity: .55; transform: scale(1.05); } }
 .logo { text-align: center; position: relative; }
@@ -60,6 +62,22 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .dot.c-red { background: var(--red); } .dot.c-blue { background: var(--blue); } .dot.c-green { background: var(--green); }
 .title-actions { display: flex; flex-direction: column; gap: 12px; }
 .fine { text-align: center; font-size: 11px; color: var(--muted); margin: 0; }
+@media (max-height: 880px) {
+  .title { gap: 18px; }
+  .title::before, .title::after { margin: -9px 0; }
+  .logo-crest { width: 68px; height: 68px; font-size: 38px; border-radius: 20px; margin-bottom: 10px; }
+  .logo h1 { font-size: 38px; }
+  .mode { padding-top: 12px !important; padding-bottom: 12px !important; }
+}
+@media (max-height: 740px) {
+  .title { gap: 12px; }
+  .title::before, .title::after { margin: -6px 0; }
+  .logo-crest { width: 52px; height: 52px; font-size: 30px; border-radius: 16px; margin-bottom: 6px; }
+  .logo h1 { font-size: 32px; }
+  .title .deck-pick h2 { margin-bottom: 6px; }
+  .mode { padding-top: 9px !important; padding-bottom: 9px !important; }
+  .modes { gap: 8px; }
+}
 
 /* ---------- 対戦画面 ---------- */
 .game { height: 100%; display: grid; grid-template-rows: auto 1fr auto 1fr auto auto; padding-top: var(--safe-top); background:
