@@ -127,8 +127,10 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .hand-meta { position: absolute; right: 14px; top: -2px; font-size: 11px; color: var(--muted); }
 
 .actions { display: flex; gap: 10px; align-items: center; padding: 8px 12px calc(10px + var(--safe-bottom)); }
-.hint { flex: 1; font-size: 12px; color: var(--muted); line-height: 1.4; }
-.hint.wait { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; }
+.hint { flex: 1; min-width: 0; font-size: 12px; color: var(--muted); line-height: 1.4; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.hint .hint-name { color: var(--text); font-size: 1em; }
+.hint small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hint.wait { -webkit-line-clamp: unset; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; }
 .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--foe); animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -482,6 +484,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .field-wrap { display: grid; grid-template-columns: 62px minmax(0, 1fr) 62px; align-items: center; gap: 4px; }
 .field-wrap .row.field { min-width: 0; }
 .hk-stack, .grave-pile { position: relative; width: 60px; height: 86px; border-radius: 10px; padding: 0; }
+.hk-stack:not(.empty) { height: 96px; }
 .hk-stack.empty, .grave-pile.empty { border: 1.5px dashed rgba(255, 255, 255, .14); display: grid; place-items: center; font-size: 10px; color: var(--muted); }
 .hk-stack .slot { position: absolute; left: 1px; }
 .hk-stack .card { box-shadow: 0 -2px 6px rgba(0, 0, 0, .55); }
@@ -501,6 +504,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .row.guardians { flex-shrink: 0; padding-top: 10px; padding-bottom: 4px; }
 .badge.cnt { top: auto; bottom: 2px; left: 50%; right: auto; transform: translateX(-50%); width: auto; min-width: 30px; padding: 0 6px; border-radius: 10px; background: #2b3f63; border: 1.5px solid var(--blue); white-space: nowrap; font-size: 11px; }
 .badge.cnt.ok { background: var(--blue); }
+.card.back.as-ijin ~ .badge.cnt { bottom: auto; top: -8px; }
 .hint b { color: var(--blue); font-size: 1.1em; }
 .hint small { color: var(--muted); font-size: 11px; }
 
@@ -525,6 +529,28 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .game.fit2 .hand .card.m { width: 66px; height: 94px; }
 .game.fit2 .center { padding-top: 4px; padding-bottom: 4px; }
 .game.fit2 .actions { padding-top: 6px; }
+.game.fit2 .hk-stack:not(.empty) { height: 84px; }
+/* とても小さい画面（iPhone SE 初代など） */
+.game.fit3 .mana-row { min-height: 18px; }
+.game.fit3 .chip { transform: scale(.85); margin: -1px; }
+.game.fit3 .card.g { width: 28px; height: 38px; }
+.game.fit3 .card.g .crest { font-size: 10px; width: 15px; height: 15px; }
+.game.fit3 .row.guardians { padding-top: 5px; }
+.game.fit3 .row.field { min-height: 60px; }
+.game.fit3 .field-wrap { grid-template-columns: 46px minmax(0, 1fr) 46px; }
+.game.fit3 .row.field .card.s, .game.fit3 .hk-stack .card.s, .game.fit3 .grave-pile .card.s { width: 42px; height: 60px; }
+.game.fit3 .hk-stack, .game.fit3 .grave-pile { width: 44px; height: 62px; }
+.game.fit3 .hk-stack:not(.empty) { height: 70px; }
+.game.fit3 .card.s .name { font-size: 8px; }
+.game.fit3 .card.s .pw { font-size: 8px; min-width: 22px; height: 15px; }
+.game.fit3 .badge { width: 17px; height: 17px; font-size: 10px; }
+.game.fit3 .hand { min-height: 96px; padding-top: 4px; }
+.game.fit3 .hand .card.m { width: 58px; height: 84px; }
+.game.fit3 .center { padding-top: 3px; padding-bottom: 3px; }
+.game.fit3 .phase-pill { padding: 4px 10px; font-size: 11px; }
+.game.fit3 .log-line { font-size: 11px; line-height: 1.35; }
+.game.fit3 .bar { padding-top: 4px; padding-bottom: 4px; }
+.game.fit3 .actions .btn { min-height: 40px; padding-top: 8px; padding-bottom: 8px; }
 
 /* ---------- CPUの相手選び ---------- */
 .foe-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
@@ -736,3 +762,5 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 @keyframes fx-draw-sheen { to { transform: translateX(80%); } }
 .hand .card.fx-drawn { animation: fx-drawn .38s cubic-bezier(.2, 1.4, .4, 1); }
 @keyframes fx-drawn { 0% { transform: translateY(-10px) scale(1.08); box-shadow: 0 0 0 2px var(--gold-2), 0 0 24px rgba(255, 220, 140, .8); } 100% { transform: none; } }
+/* ブロック役の番号が中央の帯にかからないように */
+.side.mine .field-wrap { padding-top: 6px; }
