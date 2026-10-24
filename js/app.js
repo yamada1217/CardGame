@@ -489,7 +489,7 @@ function renderGame() {
   // 左にハイケイの束、中央にイジン、右に墓地
   const fieldWrap = (pl, p) => {
     const hk = haikeis(pl);
-    const step = hk.length > 1 ? Math.min(16, 44 / (hk.length - 1)) : 0;
+    const step = hk.length > 1 ? Math.min(4, 10 / (hk.length - 1)) : 0; // 枠からはみ出さないよう少しだけずらす
     const top = pl.grave[pl.grave.length - 1];
     return `<div class="field-wrap">
       <button class="hk-stack${hk.length ? '' : ' empty'}" data-stack="${p}" aria-label="ハイケイ">
@@ -556,8 +556,9 @@ function fitBoard() {
   if (!game) return;
   const sides = [...game.querySelectorAll('.side')];
   const over = () => sides.some((s) => s.scrollHeight > s.clientHeight + 1);
-  for (const lv of ['', 'fit1', 'fit2']) {
-    game.classList.remove('fit1', 'fit2');
+  for (const lv of ['', 'fit1', 'fit2', 'fit3']) {
+    game.classList.remove('fit1', 'fit2', 'fit3');
+    if (lv === 'fit3') game.classList.add('fit2');
     if (lv) game.classList.add(lv);
     if (!over()) break;
   }
@@ -588,7 +589,9 @@ function actionButtons(g) {
     const missing = g.battle.attackers.filter((a) => !(ui.blocks[a] || []).length).length;
     const fa = ui.focusAtk && findOnBoard(g, ui.focusAtk);
     const n = fa ? (ui.blocks[ui.focusAtk] || []).length : 0, need = fa ? pressure(g, FOE, fa.inst) : 1;
-    const focusText = fa ? `${esc(def(fa.inst).name)}を<b>${n}体</b>でブロック中${need > 1 ? `（${need}体以上必要）` : ''}<br><small>光るカードをタップで追加・もう一度で解除</small>` : '';
+    // 裏向きのガーディアンがアタックしてきたときは、名前を出さない
+    const faName = fa ? (fa.zone === 'guardians' ? 'ガーディアン' : esc(def(fa.inst).name)) : '';
+    const focusText = fa ? `<b class="hint-name">${faName}</b>を<b>${n}体</b>でブロック中${need > 1 ? `（${need}体以上）` : ''}<small>光るカードをタップで追加・解除</small>` : '';
     return `<div class="hint">${fa ? focusText : '相手のアタッカーをタップして選ぶ'}</div>
       <button class="btn danger" data-act="block">${missing ? `確定（未割当 ${missing}）` : 'ブロック確定'}</button>`;
   }
