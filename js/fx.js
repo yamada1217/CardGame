@@ -1,7 +1,7 @@
 // カード操作のエフェクト。
 // 描画の前に消えるカードの位置を控えておき、描画の後に重ねて再生する
 import { def } from './engine.js';
-import { cardFace } from './cardview.js';
+import { cardFace, cardBack } from './cardview.js';
 import { sfx } from './sfx.js';
 import { battleStage } from './battle-fx.js';
 import { showcase } from './showcase.js';
@@ -31,6 +31,7 @@ export function planFx(before, after, p, action) {
     else if (x.z === 'hand' && type === 'mahou') fx.push({ kind: 'magic', uid, c: x.c });
     else if (y?.z === 'field') fx.push({ kind: type === 'haikei' ? 'place' : 'summon', uid, c: x.c, p: y.p });
     else if (y?.z === 'mana') fx.push({ kind: 'charge', uid });
+    else if (x.z === 'deck' && y?.z === 'hand' && before.phase !== 'mulligan') fx.push({ kind: 'draw', uid, p: y.p, c: y.c });
   }
   // 手札から使ったカードは、画面いっぱいに見せる演出を先に流す
   if (action?.type === 'play') {
@@ -154,10 +155,17 @@ export function runFx(root, fx, render, me) {
   const show = fx.find((e) => e.kind === 'show');
   const from = show && find(root, show.uid)?.getBoundingClientRect();
   render();
+  // 引いたカードは、飛んでくるまで手札で隠しておく
+  for (const e of fx) if (e.kind === 'draw' && e.p === me) { const t = find(root, e.uid); if (t) t.style.visibility = 'hidden'; }
   const L = getLayer();
   let wait = battle ? battleStage(L, battle, bsnaps, root, me, () => shake(root, true)) : 0;
   let timer = null;
-  const play = () => { timer = null; playFx(root, fx.filter((e) => e.kind !== 'show'), shots, L, me); };
+  const play = () => {
+    timer = null;
+    playFx(root, fx.filter((e) => e.kind !== 'show' && e.kind !== 'draw'), shots, L, me);
+    const ms = drawFx(root, fx.filter((e) => e.kind === 'draw'), L, me);
+    if (ms) busyUntil = Math.max(busyUntil, Date.now() + ms);
+  };
   if (show) {
     // 戻り先（戦場のカード、マホウなら墓地）は、演出の間は隠しておく
     const target = () => {
@@ -238,4 +246,66 @@ function playFx(root, fx, shots, L, me) {
       if (e.kind === 'charge') burst(L, cx, cy, 'summon', 6, 30);
     }
   }
+}
+
+// ドロー：山札からカードがするっと引かれて目の前に大きく飛び出し、少し浮いてから手札に収まる。
+// 相手のドローは、裏向きのカードが山札から手札の数へ吸い込まれるだけ。戻り値は演出の長さ（ミリ秒）
+const DRAW_MS = 1050, DRAW_GAP = 230;
+function drawFx(root, draws, L, me) {
+  if (!draws.length) return 0;
+  const mine = draws.filter((e) => e.p === me), foe = draws.filter((e) => e.p !== me);
+  const W = innerWidth, H = innerHeight;
+  const meta = root.querySelector('.hand-meta')?.getBoundingClientRect();
+  const deck = meta ? { x: meta.right - 24, y: meta.top + meta.height / 2 } : { x: W - 30, y: H * .7 };
+  mine.slice(0, 6).forEach((e, i) => setTimeout(() => {
+    const target = find(root, e.uid);
+    const reveal = () => { if (target) target.style.visibility = ''; };
+    const g = document.createElement('div');
+    g.className = 'fx-draw';
+    g.innerHTML = `${cardFace(e.c, { size: 'm' })}<i class="fx-draw-sheen"></i>`;
+    g.firstElementChild.classList.remove('enter', 'can', 'picked', 'playable');
+    L.appendChild(g);
+    const w = g.offsetWidth || 84, h = g.offsetHeight || 120;
+    const at = (x, y, sc, rot = 0) => `translate(${x - w / 2}px, ${y - h / 2}px) scale(${sc}) rotate(${rot}deg)`;
+    const big = Math.min(2.1, (H * .34) / h, (W * .5) / w);
+    const cx = W / 2 + (i - (mine.length - 1) / 2) * 18, cy = H * .5;
+    const tr = target?.getBoundingClientRect();
+    const end = tr && tr.width ? at(tr.left + tr.width / 2, tr.top + tr.height / 2, tr.width / w) : at(W / 2, H + h, .6);
+    const a = g.animate([
+      { transform: at(deck.x, deck.y, .28, 25), opacity: 0, filter: 'brightness(2.2)' },
+      { transform: at(deck.x - 20, deck.y - 30, .4, 14), opacity: 1, filter: 'brightness(1.8)', offset: .1 },
+      { transform: at(cx, cy, big * 1.06, -3), opacity: 1, filter: 'brightness(1.15)', offset: .36, easing: 'ease-out' },
+      { transform: at(cx, cy - 10, big, 1), opacity: 1, filter: 'brightness(1)', offset: .66, easing: 'cubic-bezier(.55,0,.4,1)' },
+      { transform: end, opacity: 1, filter: 'brightness(1)' },
+    ], { duration: DRAW_MS, easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'forwards' });
+    sfx('whoosh');
+    setTimeout(() => {
+      const r = g.getBoundingClientRect();
+      burst(L, r.left + r.width / 2, r.top + r.height / 2, 'summon', 14, Math.min(W, 420) * .32, 0);
+    }, DRAW_MS * .34);
+    setTimeout(() => sfx('card'), DRAW_MS * .9);
+    a.onfinish = () => { reveal(); g.remove(); if (target) { target.classList.remove('fx-drawn'); void target.offsetWidth; target.classList.add('fx-drawn'); setTimeout(() => target.classList.remove('fx-drawn'), 400); } };
+    setTimeout(() => { reveal(); g.remove(); }, DRAW_MS + 400);
+  }, i * DRAW_GAP));
+  // 相手のドロー
+  const counts = root.querySelector('.bar.foe .counts')?.children;
+  const from = counts?.[0]?.getBoundingClientRect(), to = counts?.[1]?.getBoundingClientRect();
+  if (from && to) foe.slice(0, 6).forEach((e, i) => setTimeout(() => {
+    const g = document.createElement('div');
+    g.className = 'fx-draw foe';
+    g.innerHTML = cardBack('', { size: 'g' });
+    L.appendChild(g);
+    const w = g.offsetWidth || 46, h = g.offsetHeight || 64;
+    const at = (x, y, sc, rot = 0) => `translate(${x - w / 2}px, ${y - h / 2}px) scale(${sc}) rotate(${rot}deg)`;
+    const fx0 = from.left + from.width / 2, fy = from.bottom + 6, tx = to.left + to.width / 2;
+    g.animate([
+      { transform: at(fx0, fy, .4, -10), opacity: 0 },
+      { transform: at((fx0 + tx) / 2, fy + 46, 1, 6), opacity: 1, offset: .5 },
+      { transform: at(tx, to.top + to.height / 2, .3, 0), opacity: 0 },
+    ], { duration: 650, easing: 'cubic-bezier(.3,.7,.3,1)', fill: 'forwards' }).onfinish = () => g.remove();
+    setTimeout(() => g.remove(), 1000);
+    if (!mine.length) sfx('card');
+  }, i * 160));
+  const n = Math.min(mine.length, 6);
+  return n ? (n - 1) * DRAW_GAP + DRAW_MS : foe.length ? 650 : 0;
 }
