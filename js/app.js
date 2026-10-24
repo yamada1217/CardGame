@@ -246,7 +246,7 @@ const myDeckForMatch = () => deckForMatch(ui.myDeck) || 'R01';
 
 function resetBoardUi() {
   closeZoom();
-  Object.assign(ui, { screen: 'game', mode: null, picks: [], blocks: {}, blocksPrev: {}, focusAtk: null, pending: null, seen: new Set(), logOpen: false, fx: null });
+  Object.assign(ui, { diceSeen: false, screen: 'game', mode: null, picks: [], blocks: {}, blocksPrev: {}, focusAtk: null, pending: null, seen: new Set(), logOpen: false, fx: null });
   closeSheet();
 }
 
@@ -566,9 +566,11 @@ function fitBoard() {
 // 手札を決める前に、サイコロで先攻を決める演出を一度だけ見せる（見ている間は手札のシートを出さない）
 function diceFirst(g) {
   if (ui.diceBusy) return true;
-  if (g.phase !== 'mulligan' || !g.dice || g.mulligan[ME] !== null || ui.diceSeen === g.seed) return false;
+  if (g.phase !== 'mulligan' || !g.dice || g.mulligan[ME] !== null || ui.diceSeen) return false;
   ui.diceBusy = true;
-  rollDice(g.dice, ME, () => { ui.diceBusy = false; ui.diceSeen = g.seed; if (ui.screen === 'game' && ui.game?.seed === g.seed) render(); });
+  // 盤面の乱数で g.seed は変わるので、対戦ごとに1回だけ（resetBoardUi で戻す）
+  ui.diceSeen = true;
+  rollDice(g.dice, ME, () => { ui.diceBusy = false; if (ui.screen === 'game') render(); });
   return true;
 }
 
