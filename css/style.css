@@ -502,17 +502,27 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .hint b { color: var(--blue); font-size: 1.1em; }
 .hint small { color: var(--muted); font-size: 11px; }
 
-/* 縦が短い画面では盤面を詰めて、ガーディアンや番号が隠れないようにする */
-@media (max-height: 760px) {
-  .side { gap: 3px; padding: 2px 10px; }
-  .mana-row { min-height: 22px; }
-  .card.g { width: 40px; height: 54px; }
-  .row.guardians { padding-top: 8px; padding-bottom: 2px; min-height: 0; }
-  .row.field { min-height: 86px; padding: 2px; }
-  .hk-stack, .grave-pile { height: 84px; }
-  .hand { min-height: 128px; padding-top: 8px; }
-  .hand .card.m { width: 74px; height: 106px; }
-}
+/* 縦が足りないときは盤面を詰めて、カードが中央のターン表示やログに重ならないようにする。
+   fit1・fit2 は実際の高さを測って app.js の fitBoard() が付ける */
+.game.fit1 .side, .game.fit2 .side { gap: 3px; padding: 2px 10px; }
+.game.fit1 .mana-row, .game.fit2 .mana-row { min-height: 22px; }
+.game.fit1 .card.g { width: 40px; height: 54px; }
+.game.fit1 .row.guardians, .game.fit2 .row.guardians { padding-top: 8px; padding-bottom: 2px; min-height: 0; }
+.game.fit1 .row.field { min-height: 86px; padding: 2px; }
+.game.fit1 .hk-stack, .game.fit1 .grave-pile { height: 84px; }
+.game.fit1 .hand, .game.fit2 .hand { min-height: 128px; padding-top: 8px; }
+.game.fit1 .hand .card.m { width: 74px; height: 106px; }
+.game.fit2 .card.g { width: 34px; height: 46px; }
+.game.fit2 .card.g .crest { font-size: 12px; width: 18px; height: 18px; }
+.game.fit2 .row { padding-top: 2px; padding-bottom: 2px; min-height: 0; }
+.game.fit2 .row.guardians { padding-top: 6px; }
+.game.fit2 .row.field { min-height: 76px; padding: 2px; }
+.game.fit2 .row.field .card.s, .game.fit2 .hk-stack .card.s, .game.fit2 .grave-pile .card.s { width: 50px; height: 72px; }
+.game.fit2 .hk-stack, .game.fit2 .grave-pile { height: 74px; }
+.game.fit2 .hand { min-height: 112px; padding-top: 6px; }
+.game.fit2 .hand .card.m { width: 66px; height: 94px; }
+.game.fit2 .center { padding-top: 4px; padding-bottom: 4px; }
+.game.fit2 .actions { padding-top: 6px; }
 
 /* ---------- CPUの相手選び ---------- */
 .foe-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }

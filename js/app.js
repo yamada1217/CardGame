@@ -545,8 +545,22 @@ function renderGame() {
     </main>`;
 
   bindGame();
+  fitBoard();
   if (g.phase === 'over') showGameOver();
   else if (!diceFirst(g)) syncDecisionSheet(g);
+}
+
+// 縦が足りずに盤面のカードが中央にはみ出すときは、段階的に詰める（描画のたびに実際の高さで判断）
+function fitBoard() {
+  const game = $app.querySelector('.game');
+  if (!game) return;
+  const sides = [...game.querySelectorAll('.side')];
+  const over = () => sides.some((s) => s.scrollHeight > s.clientHeight + 1);
+  for (const lv of ['', 'fit1', 'fit2']) {
+    game.classList.remove('fit1', 'fit2');
+    if (lv) game.classList.add(lv);
+    if (!over()) break;
+  }
 }
 
 // 手札を決める前に、サイコロで先攻を決める演出を一度だけ見せる（見ている間は手札のシートを出さない）
@@ -1024,3 +1038,4 @@ try {
   if (ui.joinCode && sess?.code === ui.joinCode) startJoin(ui.joinCode);
   else render();
 } catch { render(); }
+addEventListener('resize', fitBoard);
