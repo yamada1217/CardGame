@@ -10,7 +10,7 @@ import './effects/index.js';
 export { def, power, isDouble, levelSum, hasColor, findOnBoard, stat, ijinsOf, haikeisOf, pressure };
 export const STONE = { red: 'R-13', blue: 'B-13', green: 'G-13', yellow: 'Y-13', purple: 'P-16' };
 
-export function createGame({ seed = Date.now() >>> 0, names = ['あなた', 'あいて'], decks = ['R01', 'B01'], first = null } = {}) {
+export function createGame({ seed = Date.now() >>> 0, names = ['あなた', 'あいて'], decks = ['R01', 'B01'], first = null, dice = true } = {}) {
   const s = {
     seed, turn: 0, turnNo: 0, phase: 'mulligan', winner: null, winReason: '', inc: 0,
     rights: { mana: 1, summon: 1 }, battlesLeft: 1, battle: null, log: [], queue: [], prompt: null, tmp: [], tf: newTf(),
@@ -28,8 +28,9 @@ export function createGame({ seed = Date.now() >>> 0, names = ['あなた', 'あ
   }
   s.turn = first ?? (random(s) < 0.5 ? 0 : 1);
   s.first = s.turn;
-  s.dice = rollDice(seed, s.first);
-  log(s, `サイコロ ${s.dice.map(([a, b]) => `${a}対${b}`).join('、')}`);
+  // 先攻・後攻を選んだときはサイコロを振らない
+  s.dice = dice ? rollDice(seed, s.first) : null;
+  if (s.dice) log(s, `サイコロ ${s.dice.map(([a, b]) => `${a}対${b}`).join('、')}`);
   log(s, `${s.players[s.turn].name}の先攻`);
   return s;
 }
