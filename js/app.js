@@ -39,6 +39,7 @@ const ui = {
   busy: false,
   name: load('ijinden.name') || '',
   online: null,      // オンライン対戦中の接続
+  firstPick: load('ijinden.first') || 'random', // 先攻・後攻の選び方（first / second / random）
   joinCode: new URLSearchParams(location.search).get('room'),
   waiting: null,     // { code } 相手待ち
   foeOnline: true,
@@ -119,8 +120,8 @@ function renderTitle() {
   document.getElementById('sound').onclick = (e) => { e.stopPropagation(); setMuted(!isMuted()); e.currentTarget.textContent = isMuted() ? '🔇' : '🔊'; sfx('tap'); };
   document.getElementById('open-guide').onclick = () => { store('ijinden.guided', '1'); openGuide(); };
   // 初めての人は、CPU対戦の前に一度だけ遊び方を見せる
-  document.getElementById('start-cpu').onclick = () => (load('ijinden.guided') ? pickDeck('CPU対戦', pickLevel) : (store('ijinden.guided', '1'), openGuide(() => pickDeck('CPU対戦', pickLevel))));
-  document.getElementById('start-online').onclick = () => (canOnline ? pickDeck('フレンド対戦', startHost) : toast('オンライン対戦はもうすぐ使えるようになります'));
+  document.getElementById('start-cpu').onclick = () => (load('ijinden.guided') ? pickDeck('CPU対戦', pickLevel, { order: true }) : (store('ijinden.guided', '1'), openGuide(() => pickDeck('CPU対戦', pickLevel, { order: true }))));
+  document.getElementById('start-online').onclick = () => (canOnline ? pickDeck('フレンド対戦', startHost, { order: true }) : toast('オンライン対戦はもうすぐ使えるようになります'));
   document.getElementById('open-builder').onclick = openBuilder;
   document.getElementById('open-friends').onclick = () => (canOnline ? openFriends() : toast('オンライン機能はもうすぐ使えるようになります'));
   const jb = document.getElementById('join');
@@ -191,7 +192,7 @@ async function openFriends() {
     s.querySelectorAll('[data-inv]').forEach((b) => b.onclick = () => {
       const f = friends.find((x) => x.uid === b.dataset.inv);
       friendsOff?.(); friendsOff = null;
-      pickDeck(`${f.name}さんと対戦`, () => startHost((room) => invite(f.uid, room, myName()).then(() => toast(`${f.name}さんに誘いを送りました`)).catch(() => toast('誘いを送れませんでした'))));
+      pickDeck(`${f.name}さんと対戦`, () => startHost((room) => invite(f.uid, room, myName()).then(() => toast(`${f.name}さんに誘いを送りました`)).catch(() => toast('誘いを送れませんでした'))), { order: true });
     });
   });
 }
@@ -209,7 +210,8 @@ function startInviteWatch() {
 }
 
 // 対戦の前に使うデッキを選ぶ
-function pickDeck(title, onGo) {
+const FIRST_PICKS = [['first', '先攻'], ['second', '後攻'], ['random', 'ランダム']];
+function pickDeck(title, onGo, { order = false } = {}) {
   vibrate();
   const decks = usableDecks();
   if (!decks.some((d) => d.key === ui.myDeck && d.ok)) ui.myDeck = 'R01';
@@ -226,10 +228,17 @@ function pickDeck(title, onGo) {
       <p class="group-label">スターター</p>${starters.map(row).join('')}
       ${onlineAvailable() && !syncCode() ? '<p class="sub-note">ほかの端末で作ったデッキは、両方の「デッキ構築」で引き継ぎコードをつなぐと使えます。</p>' : ''}
     </div>
+    ${order ? `<div class="first-pick"><span>先攻・後攻</span><div class="seg">${FIRST_PICKS.map(([k, v]) => `<button class="${ui.firstPick === k ? 'on' : ''}" data-first="${k}">${v}${k === 'random' ? '<small>🎲</small>' : ''}</button>`).join('')}</div></div>` : ''}
     <div class="sheet-actions row"><button class="btn ghost" data-go="build">デッキを作る</button><button class="btn primary" data-go="start">このデッキで対戦</button></div>`, 'tall');
   s.querySelectorAll('[data-deck]').forEach((b) => b.onclick = () => {
     ui.myDeck = b.dataset.deck;
     s.querySelectorAll('[data-deck]').forEach((x) => x.classList.toggle('on', x === b));
+    vibrate();
+  });
+  s.querySelectorAll('[data-first]').forEach((b) => b.onclick = () => {
+    ui.firstPick = b.dataset.first;
+    store('ijinden.first', ui.firstPick);
+    s.querySelectorAll('[data-first]').forEach((x) => x.classList.toggle('on', x === b));
     vibrate();
   });
   s.querySelector('[data-go="build"]').onclick = () => { closeSheet(); openBuilder(); };
@@ -266,7 +275,7 @@ function pickLevel() {
     s.querySelectorAll('[data-level]').forEach((x) => x.classList.toggle('on', x === b));
     vibrate();
   });
-  s.querySelector('[data-go="back"]').onclick = () => pickDeck('CPU対戦', pickLevel);
+  s.querySelector('[data-go="back"]').onclick = () => pickDeck('CPU対戦', pickLevel, { order: true });
   s.querySelector('[data-go="next"]').onclick = () => { store('ijinden.cpuLevel', ui.cpuLevel); pickFoe(); };
 }
 
@@ -302,7 +311,7 @@ function pickFoe() {
     sync(); vibrate();
   });
   s.querySelectorAll('[data-foe]').forEach((b) => b.onclick = () => { ui.cpuFoe = b.dataset.foe; sync(); vibrate(); });
-  s.querySelector('[data-go="back"]').onclick = () => pickDeck('CPU対戦', pickLevel);
+  s.querySelector('[data-go="back"]').onclick = () => pickDeck('CPU対戦', pickLevel, { order: true });
   s.querySelector('[data-go="start"]').onclick = () => { store('ijinden.cpuFoe', ui.cpuFoe); closeSheet(); startCpuGame(); };
   sync();
 }
@@ -323,7 +332,8 @@ function startCpuGame() {
   const foe = foeDeck();
   ME = 0; FOE = 1;
   resetBoardUi();
-  ui.game = createGame({ names: [myName(), `CPU（${CPU_LEVELS[ui.cpuLevel] || 'ふつう'}）`], decks: [myDeckForMatch(), foe.deck] });
+  const pick = ui.firstPick;
+  ui.game = createGame({ names: [myName(), `CPU（${CPU_LEVELS[ui.cpuLevel] || 'ふつう'}）`], decks: [myDeckForMatch(), foe.deck], first: pick === 'first' ? 0 : pick === 'second' ? 1 : null, dice: pick !== 'first' && pick !== 'second' });
   render();
   toast(`相手のデッキ：${foe.name}`);
   cpuLoop();
@@ -337,7 +347,7 @@ const onlineHandlers = {
     ME = me; FOE = 1 - me;
     resetBoardUi();
     ui.waiting = null;
-    ui.game = createGame({ seed: start.seed, names: start.names, decks: start.decks.map(sanitizeDeck), first: start.first });
+    ui.game = createGame({ seed: start.seed, names: start.names, decks: start.decks.map(sanitizeDeck), first: start.first, dice: start.dice !== false });
     ui.replaying = true;
     render();
     setTimeout(() => { ui.replaying = false; }, 0);
@@ -373,7 +383,7 @@ async function startHost(onRoom) {
   leaveOnline();
   ui.screen = 'waiting'; ui.waiting = { code: null }; render();
   try {
-    ui.online = await hostRoom({ name: myName(), deck: myDeckForMatch() }, onlineHandlers);
+    ui.online = await hostRoom({ name: myName(), deck: myDeckForMatch(), pick: ui.firstPick }, onlineHandlers);
     if (typeof onRoom === 'function') onRoom(ui.online.code);
   } catch (e) {
     console.warn(e);

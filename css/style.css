@@ -764,3 +764,11 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 @keyframes fx-drawn { 0% { transform: translateY(-10px) scale(1.08); box-shadow: 0 0 0 2px var(--gold-2), 0 0 24px rgba(255, 220, 140, .8); } 100% { transform: none; } }
 /* ブロック役の番号が中央の帯にかからないように */
 .side.mine .field-wrap { padding-top: 6px; }
+
+/* 先攻・後攻の選択 */
+.first-pick { display: flex; align-items: center; gap: 10px; margin: 6px 0 2px; }
+.first-pick > span { font-size: 13px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.seg { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); padding: 3px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); }
+.seg button { width: 100%; text-align: center; min-height: 36px; border-radius: 9px; font-size: 13px; font-weight: 700; color: var(--muted); transition: background .15s, color .15s; }
+.seg button small { margin-left: 2px; font-size: 11px; }
+.seg button.on { background: linear-gradient(145deg, var(--gold-2), #b98a3e); color: #2a1d08; box-shadow: 0 4px 12px -6px rgba(216, 178, 106, .8); }

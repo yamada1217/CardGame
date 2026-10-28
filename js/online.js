@@ -143,7 +143,14 @@ export function roomUrl(code) {
 }
 
 // handlers: onWaiting(code) / onStart(start, role) / onAction(action, index) / onPresence(foeOnline) / onError(msg)
-export async function hostRoom({ name, deck }, handlers) {
+// 部屋を作った人（席0）が選んだ先攻・後攻。ランダムのときだけサイコロを見せる
+function firstOf(pick) {
+  if (pick === 'first') return { first: 0, dice: false };
+  if (pick === 'second') return { first: 1, dice: false };
+  return { first: Math.random() < 0.5 ? 0 : 1, dice: true };
+}
+
+export async function hostRoom({ name, deck, pick = 'random' }, handlers) {
   const db = await backend();
   let code;
   for (let i = 0; i < 5; i++) {
@@ -151,7 +158,7 @@ export async function hostRoom({ name, deck }, handlers) {
     if (!(await db.get(`rooms/${code}/host`))) break;
   }
   // ルールは子ごとに書き込みを許しているので、部屋そのものへの set ではなく子への update で作る
-  await db.update(`rooms/${code}`, { created: db.serverTime(), host: { name, deck, cid: clientId() } });
+  await db.update(`rooms/${code}`, { created: db.serverTime(), host: { name, deck, cid: clientId(), pick } });
   return connect(db, code, 'host', handlers);
 }
 
@@ -197,7 +204,7 @@ function connect(db, code, role, h) {
 
   function startGame(n) {
     return db.set(`${base}/start`, {
-      n, seed: (Math.random() * 2 ** 32) >>> 0, first: Math.random() < 0.5 ? 0 : 1,
+      n, seed: (Math.random() * 2 ** 32) >>> 0, ...firstOf(room.host.pick),
       names: [room.host.name, room.guest.name], decks: [room.host.deck, room.guest.deck],
     });
   }
